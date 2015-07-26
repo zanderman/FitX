@@ -25,7 +25,9 @@ public class Messages extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String TAG_RETAIN = "retain";
+    private static final String TAG_RETAIN_SPINNER = "retain_spinner";
+    private static final String TAG_RETAIN_DATA = "retain_data";
+
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -44,16 +46,7 @@ public class Messages extends Fragment {
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
 
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Messages.
-     */
-    // TODO: Rename and change types and number of parameters
+    // Method for creating a new instance.
     public static Messages newInstance(String param1, String param2) {
         Messages fragment = new Messages();
         Bundle args = new Bundle();
@@ -74,6 +67,7 @@ public class Messages extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
         // Initialize the shared preferences object.
         sp = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
 
@@ -94,9 +88,11 @@ public class Messages extends Fragment {
         spinner = (ProgressBar) view.findViewById(R.id.progressBar);
 
         // Check if was refhreshing before last reset.
-        if (sp != null && sp.getBoolean("flag", false) == true) {
+        if (sp != null && sp.getBoolean(TAG_RETAIN_SPINNER, false)) {
             spinner.setVisibility(View.VISIBLE);
-            editor.putBoolean("flag", false);
+
+            // Reset the retain spinner flag.
+            editor.putBoolean(TAG_RETAIN_SPINNER, false);
             editor.commit();
         }
         else
@@ -104,8 +100,8 @@ public class Messages extends Fragment {
             spinner.setVisibility(View.INVISIBLE);
 
         // Set the text as the last number used.
-        if (sp != null && !sp.getString("data", null).equals(null) && !sp.getString("data", "").equals(""))
-            text.setText(sp.getString("data", ""));
+        if (sp != null && sp.getString(TAG_RETAIN_DATA, null) != null && !sp.getString(TAG_RETAIN_DATA, "").equals(""))
+            text.setText(sp.getString(TAG_RETAIN_DATA, ""));
         else
             // Set initial hint...
             text.setHint("refresh me...");
@@ -115,10 +111,11 @@ public class Messages extends Fragment {
             @Override
             public void onClick(View v) {
 
+                // Refresh is happening. Update the flag.
                 isRefreshing = true;
 
                 // Show the progress bar.
-                spinner.setVisibility(View.VISIBLE);
+                updateSpinner(isRefreshing);
 
                 // Tell the main activty to start the retained fragment.
                 talkToActivity.startRefreshThread();
@@ -133,12 +130,20 @@ public class Messages extends Fragment {
     // Set the text of the textview.
     public void updateText(int value) {
 
+        // Change the refreshing flag.
         isRefreshing = false;
 
         // Hide the progress bar.
-        spinner.setVisibility(View.INVISIBLE);
+        updateSpinner(isRefreshing);
 
+        // Update the textView.
         text.setText(Integer.toString(value));
+    }
+
+    // Simple method for updating the spinner progress bar.
+    public void updateSpinner(boolean flag) {
+        if (flag) spinner.setVisibility(View.VISIBLE);
+        else spinner.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -146,9 +151,8 @@ public class Messages extends Fragment {
         super.onSaveInstanceState(outState);
 
         // Save the data to SharedPreferences.
-        editor.putString("data", text.getText().toString());
-        editor.putBoolean("flag", isRefreshing);
-//        editor.putBoolean("restore", true);
+        editor.putString(TAG_RETAIN_DATA, text.getText().toString());
+        editor.putBoolean(TAG_RETAIN_SPINNER, isRefreshing);
         editor.commit();
     }
 
@@ -171,8 +175,6 @@ public class Messages extends Fragment {
 
     @Override
     public void onDestroy() {
-//        editor.putBoolean("restore", false);
-//        editor.commit();
         super.onDestroy();
     }
 
