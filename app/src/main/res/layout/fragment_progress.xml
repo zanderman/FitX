@@ -1,0 +1,42 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="pinkraptorproductions.fitx.fragments.Progress"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="new entry"
+            android:id="@+id/addEntry"
+            android:background="@color/orange"
+            android:textColor="@color/lightgray"/>
+    </FrameLayout>
+
+    <!--<Button-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="0dp"-->
+        <!--android:layout_weight="0.1"-->
+        <!--android:text="new entry"-->
+        <!--android:id="@+id/addEntry"-->
+        <!--android:background="@color/orange"-->
+        <!--android:textColor="@color/lightgray"/>-->
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/progressList"
+        android:layout_weight="0.9" />
+
+
+</LinearLayout>
