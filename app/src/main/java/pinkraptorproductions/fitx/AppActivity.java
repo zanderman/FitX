@@ -64,6 +64,9 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     // Shared Preferences
     SharedPreferences prefs;
 
+    // Shared preferences editor.
+    SharedPreferences.Editor editor;
+
     // Define the asynctask
     SessionTask session;
 
@@ -72,6 +75,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     // Flag to check if user credentials were already validated on last resume.
     private volatile boolean loggedIn;
+
 
 
     @Override
@@ -89,7 +93,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
                     makeToast("Login successful!");
 
                     // Push the session token to SharedPreferences.
-                    SharedPreferences.Editor editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
+                    editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
                     editor.putInt("sessionid", Calendar.getInstance().get(Calendar.MINUTE));
                     editor.commit();
 
@@ -158,20 +162,11 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-//        outState.putInt(KEY_STORE_ITEMID, itemId);
-//        outState.putString("fragment",TAG_CURRENT);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
-//        String tag = savedInstanceState.getString("fragment");
-
-//        fm.beginTransaction().replace(R.id.frag, fm.findFragmentByTag(tag), tag);
-
-//        itemId = savedInstanceState.getInt(KEY_STORE_ITEMID);
     }
 
     //helper method that removes the current fragment
@@ -342,10 +337,20 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         // Get the user session id if available.
         int restoredKey = prefs.getInt("sessionid", 999); // returns 999 if this preference does not exits.
 
+        boolean restoreLogin = prefs.getBoolean("restoreLogin", false);
+
         // Check validate user session id. (id = minute count)
-        if (restoredKey != minuteCount) {
+        if ( (restoredKey != minuteCount) || (restoreLogin) ) {
             // Keys do not match, go to postExecute method.
             loggedIn = false;
+
+            // Toast to screen
+            makeToast("Session expired.");
+
+            // Change the flag in shared preferences.
+            editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
+            editor.putBoolean("restoreLogin", false);
+            editor.commit();
         } else {
             loggedIn = true;
         }
@@ -392,7 +397,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     @Override
     public void onRand(int value) {
 
-//        Log.d("AppActivity", "inside onRand");
         // Check if the retained fragment is already created.
         if (messages != null) {
             messages.updateText(value);
@@ -415,7 +419,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         @Override
         protected Boolean doInBackground(Void... params) {
 
-//            makeToast("New session.");
             while (loggedIn) {
                 try {
                     Thread.sleep(sleepLength);
@@ -424,22 +427,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
                 }
 
                 this.activity.checkSession();
-
-//                // Get time of onResume method call as save as the current token.
-//                int minuteCount = Calendar.getInstance().get(Calendar.MINUTE);
-//
-//                // Get reference to SystemPreferences "usersession".
-//                prefs = getSharedPreferences("usersession", MODE_PRIVATE);
-//
-//                // Get the user session id if available.
-//                int restoredKey = prefs.getInt("sessionid", 999); // returns 999 if this preference does not exits.
-//
-//                // Check validate user session id. (id = minute count)
-//                if (restoredKey != minuteCount) {
-//
-//                    // Keys do not match, go to postExecute method.
-//                    loggedIn = false;
-//                }
             }
             return null;
         }
@@ -453,12 +440,10 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         protected void onPostExecute(Boolean bool) {
             super.onPostExecute(bool);
 
-            // Toast to screen
-            makeToast("Session expired.");
-
-            // Load the login screen.
-            loadLogin();
-            Log.d("AppActivity","loading login onPostExecute");
+            // Push the flag to SharedPreferences.
+            editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
+            editor.putBoolean("restoreLogin", true);
+            editor.commit();
         }
 
         @Override
