@@ -41,25 +41,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private Animation anim;
 
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        if (resultCode == RESULT_OK) {
-//            switch (data.getStringExtra("flag")) {
-//
-//                // Handle logout event.
-//                case "logout":
-//                    update("Logout complete.");
-//
-//                    // Refresh the activity.
-//                    finish();
-//                    startActivity(getIntent());
-//                    break;
-//            }
-//        }
-//    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
