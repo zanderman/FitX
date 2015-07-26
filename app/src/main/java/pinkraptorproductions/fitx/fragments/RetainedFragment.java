@@ -64,9 +64,6 @@ public class RetainedFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-//        // Create new handler
-//        handler = new Handler();
-
         // Create the new thread and start it so that it's ready to go.
         refreshThread = new RefreshThread();
         refreshThread.start();
@@ -105,28 +102,9 @@ public class RetainedFragment extends Fragment {
         }
     };
 
+    // Method to begin the refresh task.
     public void startRefreshTask() {
         refreshThread.enqueTask(new RefreshTask("data", handler));
         Log.d("RetainedFragment","enqueued the task");
     }
-
-
-//    public class QueryThread extends Thread {
-//        Handler handler;
-//
-//        @Override
-//        public void run() {
-//
-//            try {
-//                Looper.prepare();
-//
-//                handler = new Handler();
-//
-//                Looper.loop();
-//            } catch (Throwable t) {
-//                Log.e("thread", "QueryTask", t);
-//            }
-//        }
-//    }
-
 }
