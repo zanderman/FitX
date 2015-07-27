@@ -395,22 +395,37 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         }
     }
 
+    private void sendMessagesData(int value, boolean showSpinner) {
+        editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+        editor.putString("retain_data", Integer.toString(value));
+        editor.putBoolean("retain_spinner", showSpinner);
+        editor.commit();
+    }
+
     @Override
     public void onRand(int value) {
 
-        // Commit the data to shared preferences so that it loads on next fragment load.
-        editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
-        editor.putInt("retain_data", value);
-        editor.commit();
-
-//        // Check if the retained fragment is already created.
-//        if (messages != null) {
-//            messages.updateText(value);
-//        } else {
-//            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there.");
+        // Check if the retained fragment is already created.
+        if (messages != null) {
+            if (messages.isVisible()) {
+                messages.updateText(value);
+                makeToast("visible");
+            } else {
+                // Commit the data to shared preferences so that it loads on next fragment load.
+                makeToast("not visible, sending via SP");
+                sendMessagesData(value, false);
+//            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there. Accessing...");
 //            messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
 //            messages.updateText(value);
-//        }
+            }
+        } else {
+            makeToast("was null, sending via SP");
+            // Commit the data to shared preferences so that it loads on next fragment load.
+            sendMessagesData(value, false);
+//            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there. Accessing...");
+//            messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
+//            messages.updateText(value);
+        }
     }
 
     // Task to handle user login session.

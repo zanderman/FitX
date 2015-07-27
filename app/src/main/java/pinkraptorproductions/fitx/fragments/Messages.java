@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import pinkraptorproductions.fitx.R;
 import pinkraptorproductions.fitx.interfaces.MessagesInteractionListener;
@@ -26,7 +27,7 @@ public class Messages extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG_RETAIN_SPINNER = "retain_spinner";
-    private static final String TAG_LOAD_DATA = "retain_data";
+    private static final String TAG_RETAIN_DATA = "retain_data";
 
 
     // TODO: Rename and change types of parameters
@@ -79,6 +80,8 @@ public class Messages extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        Toast.makeText(getActivity().getApplicationContext(), "onCreateView", Toast.LENGTH_SHORT).show();
+
         // Inflate the view.
         View view = inflater.inflate(R.layout.fragment_messages, container, false);
 
@@ -100,9 +103,9 @@ public class Messages extends Fragment {
             spinner.setVisibility(View.INVISIBLE);
 
         // Set the text as the last number used.
-        if (sp != null && sp.getString(TAG_LOAD_DATA, null) != null && !sp.getString(TAG_LOAD_DATA, "").equals(""))
-//            text.setText(sp.getString(TAG_LOAD_DATA, ""));
-            updateText(Integer.parseInt(sp.getString(TAG_LOAD_DATA, "")));
+        if (sp != null && sp.getString(TAG_RETAIN_DATA, null) != null && !sp.getString(TAG_RETAIN_DATA, "").equals(""))
+            text.setText(sp.getString(TAG_RETAIN_DATA, ""));
+//            updateText(Integer.parseInt(sp.getString(TAG_RETAIN_DATA, "")));
         else
             // Set initial hint...
             text.setHint("refresh me...");
@@ -151,8 +154,22 @@ public class Messages extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
+//        Toast.makeText(getActivity().getApplicationContext(), "onSaveInstanceState", Toast.LENGTH_SHORT).show();
+//
+//        // Save the data to SharedPreferences.
+//        editor.putString(TAG_RETAIN_DATA, text.getText().toString());
+//        editor.putBoolean(TAG_RETAIN_SPINNER, isRefreshing);
+//        editor.commit();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        Toast.makeText(getActivity().getApplicationContext(), "onPause", Toast.LENGTH_SHORT).show();
+
         // Save the data to SharedPreferences.
-        editor.putString(TAG_LOAD_DATA, text.getText().toString());
+        editor.putString(TAG_RETAIN_DATA, text.getText().toString());
         editor.putBoolean(TAG_RETAIN_SPINNER, isRefreshing);
         editor.commit();
     }
