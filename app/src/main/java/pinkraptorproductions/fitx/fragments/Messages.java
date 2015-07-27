@@ -26,7 +26,7 @@ public class Messages extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG_RETAIN_SPINNER = "retain_spinner";
-    private static final String TAG_RETAIN_DATA = "retain_data";
+    private static final String TAG_LOAD_DATA = "retain_data";
 
 
     // TODO: Rename and change types of parameters
@@ -100,8 +100,9 @@ public class Messages extends Fragment {
             spinner.setVisibility(View.INVISIBLE);
 
         // Set the text as the last number used.
-        if (sp != null && sp.getString(TAG_RETAIN_DATA, null) != null && !sp.getString(TAG_RETAIN_DATA, "").equals(""))
-            text.setText(sp.getString(TAG_RETAIN_DATA, ""));
+        if (sp != null && sp.getString(TAG_LOAD_DATA, null) != null && !sp.getString(TAG_LOAD_DATA, "").equals(""))
+//            text.setText(sp.getString(TAG_LOAD_DATA, ""));
+            updateText(Integer.parseInt(sp.getString(TAG_LOAD_DATA, "")));
         else
             // Set initial hint...
             text.setHint("refresh me...");
@@ -151,7 +152,7 @@ public class Messages extends Fragment {
         super.onSaveInstanceState(outState);
 
         // Save the data to SharedPreferences.
-        editor.putString(TAG_RETAIN_DATA, text.getText().toString());
+        editor.putString(TAG_LOAD_DATA, text.getText().toString());
         editor.putBoolean(TAG_RETAIN_SPINNER, isRefreshing);
         editor.commit();
     }

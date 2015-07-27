@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -397,14 +398,19 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     @Override
     public void onRand(int value) {
 
-        // Check if the retained fragment is already created.
-        if (messages != null) {
-            messages.updateText(value);
-        } else {
-            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there.");
-            messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
-            messages.updateText(value);
-        }
+        // Commit the data to shared preferences so that it loads on next fragment load.
+        editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+        editor.putInt("retain_data", value);
+        editor.commit();
+
+//        // Check if the retained fragment is already created.
+//        if (messages != null) {
+//            messages.updateText(value);
+//        } else {
+//            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there.");
+//            messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
+//            messages.updateText(value);
+//        }
     }
 
     // Task to handle user login session.
