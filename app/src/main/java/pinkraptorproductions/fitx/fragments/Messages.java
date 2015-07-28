@@ -80,8 +80,6 @@ public class Messages extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Toast.makeText(getActivity().getApplicationContext(), "onCreateView", Toast.LENGTH_SHORT).show();
-
         // Inflate the view.
         View view = inflater.inflate(R.layout.fragment_messages, container, false);
 
@@ -105,7 +103,6 @@ public class Messages extends Fragment {
         // Set the text as the last number used.
         if (sp != null && sp.getString(TAG_RETAIN_DATA, null) != null && !sp.getString(TAG_RETAIN_DATA, "").equals(""))
             text.setText(sp.getString(TAG_RETAIN_DATA, ""));
-//            updateText(Integer.parseInt(sp.getString(TAG_RETAIN_DATA, "")));
         else
             // Set initial hint...
             text.setHint("refresh me...");

@@ -409,22 +409,13 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         if (messages != null) {
             if (messages.isVisible()) {
                 messages.updateText(value);
-                makeToast("visible");
             } else {
                 // Commit the data to shared preferences so that it loads on next fragment load.
-                makeToast("not visible, sending via SP");
                 sendMessagesData(value, false);
-//            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there. Accessing...");
-//            messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
-//            messages.updateText(value);
             }
         } else {
-            makeToast("was null, sending via SP");
             // Commit the data to shared preferences so that it loads on next fragment load.
             sendMessagesData(value, false);
-//            Log.d("AppActivity", "tried to update text, but messages fragment wasn't there. Accessing...");
-//            messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
-//            messages.updateText(value);
         }
     }
 
