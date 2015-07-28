@@ -209,6 +209,24 @@ public class Progress extends Fragment {
             this.values = values;
         }
 
+        public boolean isInt(String number) {
+            try {
+                Integer.parseInt(number);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            return true;
+        }
+
+        public boolean isFloat(String number) {
+            try {
+                Float.parseFloat(number);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            return true;
+        }
+
 
 
         // draws each visible view
@@ -273,12 +291,18 @@ public class Progress extends Fragment {
             minutesEntry = (EditText) rowView.findViewById(R.id.minutesEntry);
             dateView = (TextView) rowView.findViewById(R.id.dateView);
 
-            // Set hints to the editTexts.
-            milesEntry.setHint(String.valueOf(values.get(position).miles));
-            cupsEntry.setHint(String.valueOf(values.get(position).cups));
-            stepsEntry.setHint(String.valueOf(values.get(position).steps));
-            minutesEntry.setHint(String.valueOf(values.get(position).minutes));
-            dateView.setHint("Save date: " + String.valueOf(values.get(position).date));
+            // Set text to the editTexts.
+            milesEntry.setText(String.valueOf(values.get(position).miles));
+            cupsEntry.setText(String.valueOf(values.get(position).cups));
+            stepsEntry.setText(String.valueOf(values.get(position).steps));
+            minutesEntry.setText(String.valueOf(values.get(position).minutes));
+            dateView.setText("Save date: " + String.valueOf(values.get(position).date));
+
+            // Set default hint
+            milesEntry.setHint("0.0");
+            cupsEntry.setHint("0.0");
+            stepsEntry.setHint("0");
+            minutesEntry.setHint("0");
 
             // Initialize Buttons.
             save = (Button) rowView.findViewById(R.id.saveEntry);
@@ -303,10 +327,12 @@ public class Progress extends Fragment {
 
             // Declare java objects
             String type, id, date;
-            final int indexInAdapter, firstVisible, stepsFromTheEditText, minutesFromTheEditText;
+            final int indexInAdapter, firstVisible;
+            int stepsFromTheEditText, minutesFromTheEditText;
             float milesFromTheEditText, cupsFromTheEditText;
             Calendar now;
             View row;
+            boolean dataIsValid = true;
 
             // Type of button that was clicked.
             type = ((String[]) view.getTag())[1];
@@ -321,15 +347,46 @@ public class Progress extends Fragment {
             // Get list item row index.
             row = entries.getChildAt(indexInAdapter - firstVisible);
 
-            // Save the values from the input fields.
-            milesFromTheEditText = (((EditText) row.findViewById(R.id.milesEntry)).getText().length() != 0 )
-                    ? Float.parseFloat(((EditText) row.findViewById(R.id.milesEntry)).getText().toString()) : 0;
-            cupsFromTheEditText = (((EditText) row.findViewById(R.id.cupsEntry)).getText().length() != 0 )
-                    ? Float.parseFloat(((EditText) row.findViewById(R.id.cupsEntry)).getText().toString()) : 0;
-            stepsFromTheEditText = (((EditText) row.findViewById(R.id.stepsEntry)).getText().length() != 0 )
-                    ? Integer.parseInt(((EditText) row.findViewById(R.id.stepsEntry)).getText().toString()) : 0;
-            minutesFromTheEditText = (((EditText) row.findViewById(R.id.minutesEntry)).getText().length() != 0 )
-                    ? Integer.parseInt(((EditText) row.findViewById(R.id.minutesEntry)).getText().toString()) : 0;
+
+            // Temporary EditText objects.
+            EditText temp_miles, temp_cups, temp_steps, temp_min;
+            temp_miles = ((EditText) row.findViewById(R.id.milesEntry));
+            temp_cups = ((EditText) row.findViewById(R.id.cupsEntry));
+            temp_steps = ((EditText) row.findViewById(R.id.stepsEntry));
+            temp_min = ((EditText) row.findViewById(R.id.minutesEntry));
+
+
+            // Verify each element is of the correct type.
+            if (isFloat(temp_miles.getText().toString()))
+                milesFromTheEditText = Float.parseFloat(temp_miles.getText().toString());
+            else {
+                temp_miles.setError("Invalid format!");
+                dataIsValid = false;
+                milesFromTheEditText = 0;
+
+            }
+            if (isFloat(temp_cups.getText().toString()))
+                cupsFromTheEditText = Float.parseFloat(temp_cups.getText().toString());
+            else {
+                temp_cups.setError("Invalid format!");
+                dataIsValid = false;
+                cupsFromTheEditText = 0;
+
+            }
+            if (isInt(temp_min.getText().toString()))
+                minutesFromTheEditText = Integer.parseInt(temp_min.getText().toString());
+            else {
+                temp_min.setError("Invalid format!");
+                dataIsValid = false;
+                minutesFromTheEditText = 0;
+            }
+            if (isInt(temp_steps.getText().toString()))
+                stepsFromTheEditText = Integer.parseInt(temp_steps.getText().toString());
+            else {
+                temp_steps.setError("Invalid format!");
+                dataIsValid = false;
+                stepsFromTheEditText = 0;
+            }
 
             // Create a format for the date.
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy @ HH:mm:ss");
@@ -342,11 +399,11 @@ public class Progress extends Fragment {
             ProgressEntry newEntry = new ProgressEntry(stepsFromTheEditText, milesFromTheEditText,
                     minutesFromTheEditText, cupsFromTheEditText, id, date);
 
-            // this will show you which button from which row was pressed
-            Toast.makeText(context, type + " pressed @" + indexInAdapter, Toast.LENGTH_SHORT).show();
-
             // if 'delete' was pressed
             if (type == "delete") {
+
+                // this will show you which button from which row was pressed
+                Toast.makeText(context, type + " pressed @" + indexInAdapter, Toast.LENGTH_SHORT).show();
 
                 FLAG_DELETE = true;
 
@@ -357,7 +414,8 @@ public class Progress extends Fragment {
                 anim = AnimationUtils.loadAnimation(row.getContext(), R.anim.slide_right);
                 anim.setAnimationListener(new Animation.AnimationListener() {
                     @Override
-                    public void onAnimationStart(Animation animation) {}
+                    public void onAnimationStart(Animation animation) {
+                    }
 
                     @Override
                     public void onAnimationEnd(Animation animation) {
@@ -369,13 +427,17 @@ public class Progress extends Fragment {
                     }
 
                     @Override
-                    public void onAnimationRepeat(Animation animation) {}
+                    public void onAnimationRepeat(Animation animation) {
+                    }
                 });
                 row.startAnimation(anim);
             }
 
-            //if 'save' was pressed
-            if (type == "save") {
+            // Only save if the data is valid.
+            if (type == "save" && dataIsValid) {
+
+                // this will show you which button from which row was pressed
+                Toast.makeText(context, type + " pressed @" + indexInAdapter, Toast.LENGTH_SHORT).show();
 
                 // Set the date in the dateView.
                 ((TextView) row.findViewById(R.id.dateView)).setText("Save date: " + date);
@@ -391,7 +453,6 @@ public class Progress extends Fragment {
                 // COMMUNICATE TO ACTIVITY WHICH PROGRESS ENTRY WAS UPDATED
                 talkToActivity.saveEntry(this.getItem(indexInAdapter));
             }
-
         }
     }
 
