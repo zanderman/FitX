@@ -153,20 +153,11 @@ public class Messages extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-//        Toast.makeText(getActivity().getApplicationContext(), "onSaveInstanceState", Toast.LENGTH_SHORT).show();
-//
-//        // Save the data to SharedPreferences.
-//        editor.putString(TAG_RETAIN_DATA, text.getText().toString());
-//        editor.putBoolean(TAG_RETAIN_SPINNER, isRefreshing);
-//        editor.commit();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
-        Toast.makeText(getActivity().getApplicationContext(), "onPause", Toast.LENGTH_SHORT).show();
 
         // Save the data to SharedPreferences.
         editor.putString(TAG_RETAIN_DATA, text.getText().toString());
