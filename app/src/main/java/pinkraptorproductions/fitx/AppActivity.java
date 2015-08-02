@@ -20,6 +20,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import pinkraptorproductions.fitx.classes.Session;
 import pinkraptorproductions.fitx.fragments.Dashboard;
 import pinkraptorproductions.fitx.fragments.Messages;
 import pinkraptorproductions.fitx.fragments.Progress;
@@ -29,6 +30,8 @@ import pinkraptorproductions.fitx.fragments.Social;
 import pinkraptorproductions.fitx.interfaces.MessagesInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ProgressInteractionListener;
 import pinkraptorproductions.fitx.interfaces.RetainedFragmentInteractionListener;
+import pinkraptorproductions.fitx.tasks.LoginTask;
+import pinkraptorproductions.fitx.tasks.ValidateSessionTask;
 
 
 public class AppActivity extends Activity implements ProgressInteractionListener,
@@ -69,7 +72,11 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     SharedPreferences.Editor editor;
 
     // Define the asynctask
-    SessionTask session;
+//    SessionTask session;
+    ValidateSessionTask validateSessionTask;
+
+    // User Session Object
+    Session session;
 
     // Length of session in milliseconds.
     private final int sleepLength = 500; // milliseconds
@@ -90,17 +97,27 @@ public class AppActivity extends Activity implements ProgressInteractionListener
                     // User credentials were valid.
                     loggedIn = true;
 
+                    Bundle bundle = data.getExtras();
+
+                    // Save new session object.
+                    this.session = new Session(
+                            this,
+                            bundle.getString("url"),
+                            bundle.getString("cookie")
+                    );
+
                     // Toast to screen.
                     makeToast("Login successful!");
 
-                    // Push the session token to SharedPreferences.
-                    editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
-                    editor.putInt("sessionid", Calendar.getInstance().get(Calendar.MINUTE));
-                    editor.commit();
 
-                    // Start the new session monitoring task.
-                    session = new SessionTask(this);
-                    session.execute();
+//                    // Push the session token to SharedPreferences.
+//                    editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
+//                    editor.putInt("sessionid", Calendar.getInstance().get(Calendar.MINUTE));
+//                    editor.commit();
+
+//                    // Start the new session monitoring task.
+//                    session = new SessionTask(this);
+//                    session.execute();
                     break;
 
                 case "exit":
@@ -118,6 +135,9 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         // Initialize fragment manager
         fm = getFragmentManager();
 
+        // Initialize session object with context
+        if (session == null) session = new Session(this);
+
         // Initialize generic toast.
         genToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
 
@@ -134,15 +154,19 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     protected void onResume() {
         super.onResume();
 
-        checkSession();
+        // Check user credentials on separate thread.
+        prefs = getSharedPreferences("usersession", MODE_PRIVATE);
+        new ValidateSessionTask(session).execute(prefs.getString("sessionUser", ""));
 
-        // Check if credentials were already validated.
-        if (!loggedIn) loadLogin();
+//        checkSession();
+//
+//        // Check if credentials were already validated.
+//        if (!loggedIn) loadLogin();
     }
 
     @Override
     protected void onDestroy() {
-        if (session != null) session.onCancelled();
+//        if (session != null) session.onCancelled();
         super.onDestroy();
     }
 
@@ -419,58 +443,58 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         }
     }
 
-    // Task to handle user login session.
-    private class SessionTask extends AsyncTask<Void, Integer, Boolean> {
-
-         private AppActivity activity;
-
-        public SessionTask(AppActivity activity) {
-            this.activity = activity;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            while (loggedIn) {
-                try {
-                    Thread.sleep(sleepLength);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                this.activity.checkSession();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onPostExecute(Boolean bool) {
-            super.onPostExecute(bool);
-
-            // Push the flag to SharedPreferences.
-            editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
-            editor.putBoolean("restoreLogin", true);
-            editor.commit();
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onCancelled(Boolean bool) {
-            super.onCancelled(bool);
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-        }
-    }
+//    // Task to handle user login session.
+//    private class SessionTask extends AsyncTask<Void, Integer, Boolean> {
+//
+//         private AppActivity activity;
+//
+//        public SessionTask(AppActivity activity) {
+//            this.activity = activity;
+//        }
+//
+//        @Override
+//        protected Boolean doInBackground(Void... params) {
+//
+//            while (loggedIn) {
+//                try {
+//                    Thread.sleep(sleepLength);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                this.activity.checkSession();
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Boolean bool) {
+//            super.onPostExecute(bool);
+//
+//            // Push the flag to SharedPreferences.
+//            editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
+//            editor.putBoolean("restoreLogin", true);
+//            editor.commit();
+//        }
+//
+//        @Override
+//        protected void onProgressUpdate(Integer... values) {
+//            super.onProgressUpdate(values);
+//        }
+//
+//        @Override
+//        protected void onCancelled(Boolean bool) {
+//            super.onCancelled(bool);
+//        }
+//
+//        @Override
+//        protected void onCancelled() {
+//            super.onCancelled();
+//        }
+//    }
 }

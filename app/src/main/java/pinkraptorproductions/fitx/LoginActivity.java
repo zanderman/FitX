@@ -14,6 +14,9 @@ import android.widget.Toast;
 
 import java.util.Calendar;
 
+import pinkraptorproductions.fitx.classes.Session;
+import pinkraptorproductions.fitx.tasks.LoginTask;
+
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 
@@ -40,11 +43,23 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     // Animation object
     private Animation anim;
 
+    // Login AsyncTask object.
+    LoginTask loginTask;
+
+    // Session object
+    Session session;
+
+    // Network URL.
+    public static final String BASE_URL="http://128.173.236.164:3000";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // New session object with parent activity context.
+        session = new Session(this.getParent());
 
         // Link java objects to XML elements.
         login = (Button) findViewById(R.id.loginButton);
@@ -71,6 +86,12 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         genToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
     }
 
+    // Check user entries for errors.
+    public Boolean validateEntry(String username, String password) {
+        if (username.length() != 0 && password.length() != 0) return true;
+        else return false;
+    }
+
     // Callback for when login button is pressed.
     @Override
     public void onClick(View view) {
@@ -84,16 +105,46 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 username = usernameEditText.getText().toString();
                 password = passwordEditText.getText().toString();
 
-                if (username.length() != 0 && password.length() != 0) {
-                    // Validate any credentials and go to AppActivity (Homework #3)
+                // Only run if fields are valid.
+                if (validateEntry(username, password)) {
+
+                    // Validate credentials on the network.
+                    new LoginTask(session).execute(BASE_URL, username, password);
+
+                    // Save the session data in a bundle.
+                    Bundle bundle = new Bundle();
+                    bundle.putString("url", session.getUrl());
+                    bundle.putString("cookie", session.getCookie());
+
+                    // Pass information to the parent activity.
                     Intent result = new Intent();
                     result.putExtra("login", "success");
+                    result.putExtra("sessionInfo", bundle);
                     setResult(RESULT_OK, result);
                     finish();
                 } else {
-                    if (username.length() == 0) usernameEditText.setError("field empty!");
-                    if (password.length() == 0) passwordEditText.setError("field empty!");
+                    if (username.length() == 0) {
+                        usernameEditText.setError("field empty!");
+                    }
+                    if (password.length() == 0) {
+                        passwordEditText.setError("field empty!");
+                    }
                 }
+
+                // ---------------------
+
+//                if (username.length() != 0 && password.length() != 0) {
+//                    // Validate any credentials and go to AppActivity (Homework #3)
+//                    Intent result = new Intent();
+//                    result.putExtra("login", "success");
+//                    setResult(RESULT_OK, result);
+//                    finish();
+//                } else {
+//                    if (username.length() == 0) usernameEditText.setError("field empty!");
+//                    if (password.length() == 0) passwordEditText.setError("field empty!");
+//                }
+
+                // --------------------
 
 //                // Verify user credentials.
 //                if (username.equals(getString(R.string.master_username)) && password.equals(getString(R.string.master_password)) ) {
