@@ -11,7 +11,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -126,11 +129,28 @@ public class Session {
         return this.cookie;
     }
 
+    public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
+        Reader reader = null;
+        reader = new InputStreamReader(stream, "UTF-8");
+        char[] buffer = new char[len];
+        reader.read(buffer);
+        return new String(buffer);
+    }
+
     //checks if the session is valid
     public Boolean isUserLoggedIn(String user) throws IOException, JSONException {
 
         this.prefs = this.context.getSharedPreferences("usersession", context.MODE_PRIVATE);
-        this.cookie = this.prefs.getString("sessionid", "");
+        Log.d("Session","Intialize preferences");
+
+        if (this.prefs.contains("sessionid")) {
+            this.cookie = Integer.toString(this.prefs.getInt("sessionid", 999));
+        }
+        else
+            this.cookie = "blah";
+
+        Log.d("Session","Intialize cookie");
+
         Log.d("hw4","cookie in the onResume is "+this.cookie);
         InputStream is = null;
 
