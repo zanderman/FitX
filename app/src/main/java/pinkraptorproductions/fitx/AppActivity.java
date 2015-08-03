@@ -30,6 +30,7 @@ import pinkraptorproductions.fitx.fragments.Social;
 import pinkraptorproductions.fitx.interfaces.MessagesInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ProgressInteractionListener;
 import pinkraptorproductions.fitx.interfaces.RetainedFragmentInteractionListener;
+import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
 import pinkraptorproductions.fitx.tasks.LoginTask;
 import pinkraptorproductions.fitx.tasks.ValidateSessionTask;
 
@@ -37,7 +38,8 @@ import pinkraptorproductions.fitx.tasks.ValidateSessionTask;
 public class AppActivity extends Activity implements ProgressInteractionListener,
         Dashboard.DashboardInteractionListener, Social.SocialInteractionListener,
         Settings.SettingsInteractionListener, MessagesInteractionListener,
-        RetainedFragmentInteractionListener {
+        RetainedFragmentInteractionListener,
+        ValidateSessionInterface {
 
     // MAKE TAGS FOR THE FRAGMENTS
     private static final String TAG_DASHBOARD = "dashboard";
@@ -147,7 +149,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         fm = getFragmentManager();
 
         // Initialize session object with context
-        if (session == null) session = new Session(this);
+        if (session == null) session = new Session(this, BASE_URL, null);
 
         // Initialize generic toast.
         genToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
@@ -167,7 +169,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
         // Check user credentials on separate thread.
         prefs = getSharedPreferences("usersession", MODE_PRIVATE);
-        new ValidateSessionTask(session).execute(prefs.getString("sessionUser", ""));
+        new ValidateSessionTask(this, session).execute(prefs.getString("sessionUser", ""));
 
 //        checkSession();
 //
