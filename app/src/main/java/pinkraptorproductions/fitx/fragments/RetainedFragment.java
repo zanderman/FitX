@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import android.os.Handler;
 
+import pinkraptorproductions.fitx.AppActivity;
 import pinkraptorproductions.fitx.R;
 import pinkraptorproductions.fitx.interfaces.RetainedFragmentInteractionListener;
 import pinkraptorproductions.fitx.tasks.RefreshTask;
@@ -93,18 +94,34 @@ public class RetainedFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
 
-            final int value = msg.getData().getInt("data");
+            if (msg.getData().getBoolean("result"))
+                listener.newEntries(
+                        msg.getData().getBundle("data")
+                );
 
-            Log.d("AppActivity", "message received: " + value);
-
+//            final int value = msg.getData().getInt("data");
+//            Log.d("AppActivity", "message received: " + value);
             // Send the data to the AppActivity.
-            listener.onRand(value);
+//            listener.onRand(value);
         }
     };
 
-    // Method to begin the refresh task.
-    public void startRefreshTask() {
-        refreshThread.enqueTask(new RefreshTask("data", handler));
-        Log.d("RetainedFragment","enqueued the task");
+//    // Method to begin the refresh task.
+//    public void startRefreshTask() {
+//        refreshThread.enqueTask(new RefreshTask("data", handler));
+//        Log.d("RetainedFragment","enqueued the task");
+//    }
+
+    //initiates refresh task from inside the retained fragment
+    public void initiateProgressLoad(String cookie, String user) {
+        refreshThread.enqueTask(new RefreshTask(
+                cookie,
+                user,
+                AppActivity.BASE_URL + "/rest/progress/",
+                handler
+        ));
+        Log.d("RetainedFragment", "enqueued the task");
+        //updates messages
+        //to-do, next homework
     }
 }
