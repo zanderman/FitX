@@ -28,7 +28,8 @@ public class Session {
 
     private SharedPreferences prefs;
     private Context context;
-    private String url, cookie, user;
+    private String cookie, user;
+    private static String url;
 
     // Constructor with context
     public Session(Context context) {
@@ -64,6 +65,9 @@ public class Session {
     // Return user.
     public String getUser() { return this.user; }
 
+    // Return context.
+    public Context getContext() { return this.context; }
+
 
     //perform login
     public String login(String myurl, String username, String password) throws IOException, JSONException {
@@ -75,6 +79,7 @@ public class Session {
         this.url = myurl;
         this.cookie = "empty cookie";
         this.user = username;
+        this.prefs = this.context.getSharedPreferences("usersession", context.MODE_PRIVATE);
 
         // Try network call
         try {
@@ -155,14 +160,17 @@ public class Session {
         InputStream is = null;
 
         try {
+
             HttpURLConnection conn = (HttpURLConnection) ((new URL(this.url + "?" + user).openConnection()));
             conn.setReadTimeout(10000 /* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestProperty("Cookie",this.cookie );
+            conn.setRequestProperty("Cookie", this.cookie);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
             conn.setRequestMethod("GET");
             conn.connect();
+
+            Log.d("Session", "connected");
 
 
             // handling the response
@@ -177,7 +185,6 @@ public class Session {
             Log.d("hw4","readIT gets:"+resp);
             if (!resp.contains("0")) {
                 return true;
-
             } else {
                 Log.d("hw4","not logged  in and ...?");
                 return false;
@@ -187,7 +194,6 @@ public class Session {
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } catch (Exception e) {
-
             Log.d("vt", " and the exception is " + e);
         } finally {
             if (is != null) {
