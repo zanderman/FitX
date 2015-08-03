@@ -50,9 +50,20 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     private static final String KEY_STORE_ITEMID = "itemId";
 
+    private static final String KEY_STORE_MILES = "miles";
+    private static final String KEY_STORE_MINUTES = "minutes";
+    private static final String KEY_STORE_CUPS = "cups";
+    private static final String KEY_STORE_STEPS = "steps";
+    private static final String KEY_STORE_DATE = "date";
+    private static final String KEY_STORE_ID = "_id";
+
+    // Network URL.
+    public static final String BASE_URL="http://128.173.236.164:3000";
+
 
     //MAKE OBJECTS FOR THE FRAGMENTS
-    private Fragment dashboard, progress, settings, social;
+    private Fragment dashboard, settings, social;
+    private Progress progress;
     private Messages messages;
     private RetainedFragment retainedFragment;
 
@@ -102,7 +113,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
                     // Save new session object.
                     this.session = new Session(
                             this,
-                            bundle.getString("url"),
+                            BASE_URL,
                             bundle.getString("cookie")
                     );
 
@@ -301,7 +312,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
             case R.id.action_progress:
                 TAG_CURRENT = TAG_PROGRESS;
                 // Checks if social fragment exists in the manager.
-                progress = fm.findFragmentByTag(TAG_PROGRESS);
+                progress = (Progress) fm.findFragmentByTag(TAG_PROGRESS);
 
                 if (progress == null) {
 
@@ -412,7 +423,11 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
         // Check if the retained fragment is already created.
         if (retainedFragment != null) {
-            retainedFragment.startRefreshTask();
+//            retainedFragment.startRefreshTask();
+            retainedFragment.initiateProgressLoad(
+                    this.session.getCookie(),
+                    this.session.getUser()
+            );
             Log.d("AppActivity", "called startRefreshTask()");
         } else {
             Log.d("AppActivity", "tried to start refresh task, but retainedfragment wasn't there.");
@@ -440,6 +455,22 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         } else {
             // Commit the data to shared preferences so that it loads on next fragment load.
             sendMessagesData(value, false);
+        }
+    }
+
+    public void newEntries(Bundle data) {
+        // Check if the retained fragment is already created.
+        if (progress != null) {
+            for (int i = 0; i < data.size(); i++) {
+                progress.addEntry(
+                        data.getIntArray(KEY_STORE_STEPS)[i],
+                        data.getFloatArray(KEY_STORE_MILES)[i],
+                        data.getIntArray(KEY_STORE_MINUTES)[i],
+                        data.getFloatArray(KEY_STORE_CUPS)[i],
+                        data.getStringArray(KEY_STORE_ID)[i],
+                        data.getStringArray(KEY_STORE_DATE)[i]
+                );
+            }
         }
     }
 
