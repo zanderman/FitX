@@ -40,7 +40,7 @@ public class Progress extends Fragment {
     private static final String KEY_STORE_CUPS = "cups";
     private static final String KEY_STORE_STEPS = "steps";
     private static final String KEY_STORE_DATE = "date";
-    private static final String KEY_STORE_ID = "id";
+    private static final String KEY_STORE_ID = "_id";
 
     private boolean FLAG_ADD;
     private boolean FLAG_DELETE;
@@ -145,11 +145,11 @@ public class Progress extends Fragment {
             }
         }
 
-        // If no saved state is available, create dummy entries.
-        else {
-            temp.add(new ProgressEntry(12, 2.3f, 3, 4.5f, "555", "423"));
-            temp.add(new ProgressEntry(16, 2.1f, 99, 4.5f, "7777888", "34"));
-        }
+//        // If no saved state is available, create dummy entries.
+//        else {
+//            temp.add(new ProgressEntry(12, 2.3f, 3, 4.5f, "555", "423"));
+//            temp.add(new ProgressEntry(16, 2.1f, 99, 4.5f, "7777888", "34"));
+//        }
 
         //linking  java side with the xml side for the ListView
         entries = (ListView) view.findViewById(R.id.progressList);
@@ -167,9 +167,14 @@ public class Progress extends Fragment {
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FLAG_ADD = true;
-                adapter.add(new ProgressEntry(0, 0, 0, 0, "tempid", "__/__/__ @ __:__:__"));
-                adapter.notifyDataSetChanged();
+
+                // Add a new entry
+                addEntry(0, 0, 0, 0, "tempid", "__/__/__ @ __:__:__");
+
+                // Code from homework #3
+//                FLAG_ADD = true;
+//                adapter.add(new ProgressEntry(0, 0, 0, 0, "tempid", "__/__/__ @ __:__:__"));
+//                adapter.notifyDataSetChanged();
             }
         });
         return view;
@@ -184,6 +189,13 @@ public class Progress extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement ProgressInteractionListener");
         }
+    }
+
+    // Add entry to entry adapter.
+    public void addEntry(int steps, float miles, int minutes, float cups, String id, String date) {
+        FLAG_ADD = true;
+        adapter.add(new ProgressEntry(steps, miles, minutes, cups, id, date));
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -458,7 +470,7 @@ public class Progress extends Fragment {
 
 
     // Class to represent data in the progress list.
-    public class ProgressEntry {
+    public static class ProgressEntry {
 
         public int steps;
         public float miles;
