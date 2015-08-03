@@ -151,7 +151,9 @@ public class Session {
             is = conn.getResponseCode() >= 400 ? conn.getErrorStream() : conn.getInputStream();
 
 
+            // TODO: what does "readIt()" do?
             String resp=readIt(is, 2).substring(0, 1);
+
             Log.d("hw4","readIT gets:"+resp);
             if (!resp.contains("0")) {
                 return true;
