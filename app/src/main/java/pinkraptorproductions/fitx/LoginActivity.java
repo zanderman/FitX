@@ -56,7 +56,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_login);
 
         // New session object with parent activity context.
-        session = new Session(this.getParent());
+        session = new Session(getApplicationContext());
 
         // Link java objects to XML elements.
         login = (Button) findViewById(R.id.loginButton);
@@ -106,7 +106,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 if (validateEntry(username, password)) {
 
                     // Validate credentials on the network.
-                    new LoginTask(session).execute(AppActivity.BASE_URL, username, password);
+                    new LoginTask(session).execute(new String[] {AppActivity.BASE_URL, username, password});
 
                     // Save the session data in a bundle.
                     Bundle bundle = new Bundle();
