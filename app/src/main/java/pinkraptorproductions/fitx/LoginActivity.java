@@ -49,9 +49,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     // Session object
     Session session;
 
-    // Network URL.
-    public static final String BASE_URL="http://128.173.236.164:3000";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,11 +106,10 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 if (validateEntry(username, password)) {
 
                     // Validate credentials on the network.
-                    new LoginTask(session).execute(BASE_URL, username, password);
+                    new LoginTask(session).execute(AppActivity.BASE_URL, username, password);
 
                     // Save the session data in a bundle.
                     Bundle bundle = new Bundle();
-                    bundle.putString("url", session.getUrl());
                     bundle.putString("cookie", session.getCookie());
 
                     // Pass information to the parent activity.
