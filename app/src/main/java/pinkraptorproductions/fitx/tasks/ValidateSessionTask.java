@@ -1,25 +1,35 @@
 package pinkraptorproductions.fitx.tasks;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONException;
 
 import java.io.IOException;
 
+import pinkraptorproductions.fitx.AppActivity;
 import pinkraptorproductions.fitx.classes.Session;
+import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
 
 /**
  * Created by lndsharkfury on 8/2/15.
  */
 public class ValidateSessionTask extends AsyncTask<String, Integer, Boolean> {
 
-    private Session session;
 
-    public ValidateSessionTask(Session session) {
+    private Session session;
+    private Activity activity;
+    private ValidateSessionInterface sessionInterface;
+
+    public ValidateSessionTask(Activity activity, Session session) {
         super();
 
         // Intiialize attributes
         this.session = session;
+        this.activity = activity;
+        this.sessionInterface = (ValidateSessionInterface) activity;
     }
 
     @Override
@@ -44,5 +54,11 @@ public class ValidateSessionTask extends AsyncTask<String, Integer, Boolean> {
     @Override
     protected void onPostExecute(Boolean s) {
         super.onPostExecute(s);
+
+        if (!s) {
+            Log.d("vst", "user is not logged in");
+            sessionInterface.loadLogin();
+        }
+        else Log.d("vst", "user is already logged in");
     }
 }
