@@ -64,7 +64,8 @@ public class LoginTask extends AsyncTask<String, Integer, String>{
 
         // Push the cookie to shared preferences
         SharedPreferences.Editor editor = this.session.getPrefs().edit();
-        editor.putString("sessionid", s);
+//        editor.putString("sessionid", s);
+        editor.putInt("sessionid", Integer.parseInt(s));
         editor.putString("sessionUser", this.session.getUser());
         editor.commit();
     }
