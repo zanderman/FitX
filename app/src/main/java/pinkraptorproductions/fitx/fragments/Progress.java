@@ -429,8 +429,6 @@ public class Progress extends Fragment {
             now = Calendar.getInstance();
             date = sdf.format(now.getTime());
 
-//            String myid = adapter.getItem(indexInAdapter).id;
-
             // Create a temporary entry.
             ProgressEntry newEntry = new ProgressEntry(stepsFromTheEditText, milesFromTheEditText,
                     minutesFromTheEditText, cupsFromTheEditText, id, date);
