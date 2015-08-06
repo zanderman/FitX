@@ -94,38 +94,14 @@ public class RetainedFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
 
-//            Bundle data = msg.getData().getBundle("data");
-//            for (int i = 0; i < data.size(); i++) {
-//
-//                //Log the entries
-//                Log.d("hw4", "entry [" + Integer.toString(i) + "]: "
-//                                + "\nsteps=" + Integer.toString(data.getIntArray("steps")[i])
-//                                + "\nmiles=" + Float.toString(data.getIntArray("miles")[i])
-//                                + "\nminutes=" + Integer.toString(data.getIntArray("minutes")[i])
-//                                + "\ncups=" + Float.toString(data.getIntArray("cups")[i])
-//                                + "\nid=" + data.getIntArray("_id")[i]
-//                                + "\ndate=" + data.getIntArray("date")[i]
-//                );
-//            }
 
             if (msg.getData().getBoolean("result"))
                 Log.d("hw4", "data bundle length: " + Integer.toString(msg.getData().getBundle("data").size()));
                 listener.newEntries(
                         msg.getData().getBundle("data")
                 );
-
-//            final int value = msg.getData().getInt("data");
-//            Log.d("AppActivity", "message received: " + value);
-            // Send the data to the AppActivity.
-//            listener.onRand(value);
         }
     };
-
-//    // Method to begin the refresh task.
-//    public void startRefreshTask() {
-//        refreshThread.enqueTask(new RefreshTask("data", handler));
-//        Log.d("RetainedFragment","enqueued the task");
-//    }
 
     //initiates refresh task from inside the retained fragment
     public void initiateProgressLoad(String cookie, String user) {
