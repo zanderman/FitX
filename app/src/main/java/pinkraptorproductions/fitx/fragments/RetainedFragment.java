@@ -2,6 +2,7 @@ package pinkraptorproductions.fitx.fragments;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Looper;
@@ -93,7 +94,6 @@ public class RetainedFragment extends Fragment {
 
         @Override
         public void handleMessage(Message msg) {
-
 
             if (msg.getData().getBoolean("result"))
                 Log.d("hw4", "data bundle length: " + Integer.toString(msg.getData().getBundle("data").size()));
