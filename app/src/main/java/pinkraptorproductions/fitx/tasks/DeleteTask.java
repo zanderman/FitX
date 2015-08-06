@@ -22,7 +22,6 @@ import pinkraptorproductions.fitx.fragments.Progress;
 public class DeleteTask extends AsyncTask<String, Integer, Void> {
 
     private Context context;
-    private SharedPreferences prefs;
     private Progress.ProgressEntry entry;
 
     public DeleteTask(Context context, Progress.ProgressEntry entry) {
@@ -35,19 +34,23 @@ public class DeleteTask extends AsyncTask<String, Integer, Void> {
     protected Void doInBackground(String... params) {
 
         // Get shared preferences.
-        this.prefs = this.context.getSharedPreferences(
+        SharedPreferences prefs = this.context.getSharedPreferences(
                 this.context.getString(R.string.sp_tag_session),
                 context.MODE_PRIVATE
         );
 
         // Get the current username.
-        String username = this.prefs.getString(
+        String username = prefs.getString(
                 this.context.getString(R.string.sp_tag_session_username),
                 ""
         );
 
         try {
-            HttpURLConnection conn = (HttpURLConnection) ((new URL(AppActivity.BASE_URL + "/dashboard/entrydelete").openConnection()));
+
+            String query = AppActivity.BASE_URL + "/dashboard/entrydelete";
+            Log.d("hw4", "[delete] query = " + query);
+
+            HttpURLConnection conn = (HttpURLConnection) ((new URL(query).openConnection()));
             conn.setDoOutput(true);
             conn.setReadTimeout(10000 /* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);

@@ -21,6 +21,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import pinkraptorproductions.fitx.R;
+
 /**
  * Created by lndsharkfury on 8/2/15.
  */
@@ -40,6 +42,7 @@ public class Session {
         this.prefs = null;
         this.url = null;
         this.cookie = null;
+        this.user = null;
     }
 
     // Constructor with url, cookie
@@ -51,6 +54,7 @@ public class Session {
         this.prefs = null;
         this.url = url;
         this.cookie = cookie;
+        this.user = null;
     }
 
     // Return shared preferences object.
@@ -79,11 +83,18 @@ public class Session {
         this.url = myurl;
         this.cookie = "empty cookie";
         this.user = username;
-        this.prefs = this.context.getSharedPreferences("usersession", context.MODE_PRIVATE);
+        this.prefs = this.context.getSharedPreferences(
+                this.context.getString(R.string.sp_tag_session),
+                context.MODE_PRIVATE
+        );
 
         // Try network call
         try {
-            HttpURLConnection conn = (HttpURLConnection) ((new URL(myurl).openConnection()));
+
+            String query = myurl + "/login";
+            Log.d("hw4", "login query is: " + query);
+
+            HttpURLConnection conn = (HttpURLConnection) ((new URL(query).openConnection()));
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
@@ -101,7 +112,7 @@ public class Session {
             wr.write(cred.toString());
             wr.flush();
             wr.close();
-            Log.d("hw4", " response from the server is" + conn.getResponseCode());
+            Log.d("hw4", " response from the server is: " + conn.getResponseCode());
             // handling the response
             StringBuilder sb = new StringBuilder();
             int HttpResult = conn.getResponseCode();
@@ -131,8 +142,13 @@ public class Session {
                 is.close();
             }
         }
+
+        Log.d("hw4", "before exiting login, cookie = " + this.cookie);
         return this.cookie;
     }
+
+
+
 
     public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
         Reader reader = null;
@@ -142,17 +158,27 @@ public class Session {
         return new String(buffer);
     }
 
+
+
+
+
     //checks if the session is valid
     public Boolean isUserLoggedIn(String user) throws IOException, JSONException {
 
-        this.prefs = this.context.getSharedPreferences("usersession", context.MODE_PRIVATE);
+        this.prefs = this.context.getSharedPreferences(
+                this.context.getString(R.string.sp_tag_session),//"usersession",
+                context.MODE_PRIVATE
+        );
+
         Log.d("Session","Intialize preferences");
 
-        if (this.prefs.contains("sessionid")) {
-            this.cookie = Integer.toString(this.prefs.getInt("sessionid", 999));
+        if (this.prefs.contains(this.context.getString(R.string.sp_tag_session_id))) {
+            this.cookie = this.prefs.getString(
+                            this.context.getString(R.string.sp_tag_session_id),
+                            "default"
+            );
         }
-        else
-            this.cookie = "blah";
+        else this.cookie = "";
 
         Log.d("Session","Intialize cookie");
 
@@ -161,7 +187,10 @@ public class Session {
 
         try {
 
-            HttpURLConnection conn = (HttpURLConnection) ((new URL(this.url + "?" + user).openConnection()));
+            String query = this.url + "/loggedin?username=" + user;
+            Log.d("hw4", "isUserLoggedIn query is: " + query);
+
+            HttpURLConnection conn = (HttpURLConnection) ((new URL(query).openConnection())); //this.url + "?" + user
             conn.setReadTimeout(10000 /* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);
             conn.setRequestProperty("Cookie", this.cookie);
@@ -183,7 +212,7 @@ public class Session {
             String resp=readIt(is, 2).substring(0, 1);
 
             Log.d("hw4","readIT gets:"+resp);
-            if (!resp.contains("0")) {
+            if (!resp.contains("0")) { //"0"
                 return true;
             } else {
                 Log.d("hw4","not logged  in and ...?");

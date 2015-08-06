@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Map;
 
 import pinkraptorproductions.fitx.classes.Session;
 import pinkraptorproductions.fitx.fragments.Dashboard;
@@ -31,7 +32,9 @@ import pinkraptorproductions.fitx.interfaces.MessagesInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ProgressInteractionListener;
 import pinkraptorproductions.fitx.interfaces.RetainedFragmentInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
+import pinkraptorproductions.fitx.tasks.DeleteTask;
 import pinkraptorproductions.fitx.tasks.LoginTask;
+import pinkraptorproductions.fitx.tasks.SaveTask;
 import pinkraptorproductions.fitx.tasks.ValidateSessionTask;
 
 
@@ -76,7 +79,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     private int itemId = 0;
 
     // Declare generic toast.
-    private Toast genToast;
+    private static Toast genToast;
 
     // Shared Preferences
     SharedPreferences prefs;
@@ -96,6 +99,8 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     // Flag to check if user credentials were already validated on last resume.
     private volatile boolean loggedIn;
+
+    private Bundle downloadedEntries;
 
 
 
@@ -118,6 +123,9 @@ public class AppActivity extends Activity implements ProgressInteractionListener
                             BASE_URL,
                             bundle.getString("cookie")
                     );
+
+                    prefs = getSharedPreferences(getString(R.string.sp_tag_session), MODE_PRIVATE);
+                    Log.d("hw4", "sessionid = " + prefs.getString("sessionid", "default") + " | sessionUser = " + prefs.getString("sessionUser", "default"));
 
                     // Toast to screen.
                     makeToast("Login successful!");
@@ -157,6 +165,9 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         // Set initial login
         loggedIn = false;
 
+        // Initialize downloadedEntries
+        downloadedEntries = null;
+
         // Start the retained fragment.
         connectWithRetainedFragment();
     }
@@ -169,7 +180,8 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
         // Check user credentials on separate thread.
         prefs = getSharedPreferences("usersession", MODE_PRIVATE);
-        new ValidateSessionTask(this, session).execute(prefs.getString("sessionUser", ""));
+        new ValidateSessionTask(this, session).execute(prefs.getString("sessionUser", "default"));
+
 
 //        checkSession();
 //
@@ -319,7 +331,21 @@ public class AppActivity extends Activity implements ProgressInteractionListener
                 if (progress == null) {
 
                     // Create new instance of the Settings class.
-                    progress = Progress.newInstance("a", "z");
+//                    progress = Progress.newInstance("a", "z");
+                    if (downloadedEntries != null && downloadedEntries.containsKey(KEY_STORE_ID)) {
+                        if (downloadedEntries.getStringArray(KEY_STORE_ID).length != 0) {
+                            // Pass in downloaded entries
+                            progress = Progress.newInstance("a", "z", downloadedEntries);
+                        }
+                        else {
+                            // Don't pass in entries
+                            progress = Progress.newInstance("a", "z", null);
+                        }
+                    }
+                    else {
+                        // Don't pass in entries
+                        progress = Progress.newInstance("a", "z", null);
+                    }
 
                     // Add fragment to manager
                     fm.beginTransaction().replace(R.id.frag, progress, TAG_PROGRESS).commit();
@@ -331,26 +357,25 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     }
 
     // Update the generic toast message upon request.
-    private void newToast(String message) {
+    public static void newToast(String message) {
         genToast.setText(message);
         genToast.show();
     }
 
     //MUST HAVE TWO CALLABACK METHODS HERE THAT RECEIVE DATA FROM PROGRESS.JAVA
     public void saveEntry(Progress.ProgressEntry entry) {
-        newToast("[activity] " + "Updated entry with:"
-                + "\nMiles: " + entry.miles
-                + "Cups: " + entry.cups
-                + "\nMinutes: " + entry.minutes
-                + "Steps: " + entry.steps);
+//        newToast("[activity] " + "Updated entry with:"
+//                + "\nMiles: " + entry.miles
+//                + "Cups: " + entry.cups
+//                + "\nMinutes: " + entry.minutes
+//                + "Steps: " + entry.steps);
+        new SaveTask(this).execute(entry);
     }
 
     public void deleteEntry(Progress.ProgressEntry entry) {
-        newToast("[activity] " + "Deleted entry with:"
-                + "\nMiles: " + entry.miles
-                + "Cups: " + entry.cups
-                + "\nMinutes: " + entry.minutes
-                + "Steps: " + entry.steps);
+
+        // Start AsyncTask for deleting an entry.
+        new DeleteTask(this, entry).execute(entry.id);
     }
 
     @Override
@@ -416,7 +441,7 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
             // Add retainedFragment to the fragment manager
             fm.beginTransaction().add(retainedFragment, TAG_RETAIN).commit();
-            Log.d("fragment", "AppActivity started RetainedFragment");
+            Log.d("hw4", "AppActivity started RetainedFragment");
         }
     }
 
@@ -426,13 +451,17 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         // Check if the retained fragment is already created.
         if (retainedFragment != null) {
 //            retainedFragment.startRefreshTask();
+            prefs = getSharedPreferences("usersession", MODE_PRIVATE);
+            String user = prefs.getString(getString(R.string.sp_tag_session_username), "default");
+
+            Log.d("hw4","starting refresh thread: user=" + user + " | cookie=" + this.session.getCookie());
             retainedFragment.initiateProgressLoad(
                     this.session.getCookie(),
-                    this.session.getUser()
+                    user//this.session.getUser()
             );
-            Log.d("AppActivity", "called startRefreshTask()");
+            Log.d("hw4", "called startRefreshTask()");
         } else {
-            Log.d("AppActivity", "tried to start refresh task, but retainedfragment wasn't there.");
+            Log.d("hw4", "tried to start refresh task, but retainedfragment wasn't there.");
         }
     }
 
@@ -461,18 +490,28 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     }
 
     public void newEntries(Bundle data) {
-        // Check if the retained fragment is already created.
-        if (progress != null) {
-            for (int i = 0; i < data.size(); i++) {
-                progress.addEntry(
-                        data.getIntArray(KEY_STORE_STEPS)[i],
-                        data.getFloatArray(KEY_STORE_MILES)[i],
-                        data.getIntArray(KEY_STORE_MINUTES)[i],
-                        data.getFloatArray(KEY_STORE_CUPS)[i],
-                        data.getStringArray(KEY_STORE_ID)[i],
-                        data.getStringArray(KEY_STORE_DATE)[i]
-                );
-            }
+
+        if (progress == null) {
+            Log.d("hw4", "Progress fragment was null.");
+        }
+
+        Log.d("hw4","[activity] data bundle length: " + data.size());
+
+        Log.d("hw4", "adding entries");
+
+        for (int i = 0; i < data.getStringArray(KEY_STORE_ID).length; i++) {
+
+            //Log the entries
+            Log.d("hw4", "entry ["+Integer.toString(i)+"]: "
+                + "\nsteps=" + Integer.toString(data.getIntArray(KEY_STORE_STEPS)[i])
+                + "\nmiles=" + Float.toString(data.getFloatArray(KEY_STORE_MILES)[i])
+                + "\nminutes=" + Integer.toString(data.getIntArray(KEY_STORE_MINUTES)[i])
+                + "\ncups=" + Float.toString(data.getFloatArray(KEY_STORE_CUPS)[i])
+                + "\nid=" + data.getStringArray(KEY_STORE_ID)[i]
+                + "\ndate=" + data.getStringArray(KEY_STORE_DATE)[i]
+            );
+
+            downloadedEntries = data;
         }
     }
 

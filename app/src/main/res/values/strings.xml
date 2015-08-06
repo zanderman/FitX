@@ -24,4 +24,15 @@
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_app">AppActivity</string>
+
+    <!-- Shared Preferences Primary Tags -->
+    <string name="sp_tag_session">usersession</string>
+    <string name="sp_tag_progress">sharedprogress</string>
+
+    <!-- User Session SP Tags-->
+    <string name="sp_tag_session_username">sessionUser</string>
+    <string name="sp_tag_session_id">sessionid</string>
+
+    <!-- Shared Progress SP Tags -->
+
 </resources>

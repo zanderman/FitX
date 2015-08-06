@@ -1,5 +1,6 @@
 package pinkraptorproductions.fitx.tasks;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 import pinkraptorproductions.fitx.classes.Session;
+import pinkraptorproductions.fitx.interfaces.LoginSessionInterface;
+import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
 
 /**
  * Created by lndsharkfury on 8/2/15.
@@ -25,10 +28,13 @@ import pinkraptorproductions.fitx.classes.Session;
 public class LoginTask extends AsyncTask<String, Integer, String>{
 
     private Session session;
+    private LoginSessionInterface loginSessionInterface;
 
     // Constructor
-    public LoginTask(Session session) {
+    public LoginTask(Activity activity, Session session) {
         super();
+
+        this.loginSessionInterface = (LoginSessionInterface) activity;
 
         // Initialize attributes
         this.session = session;
@@ -62,11 +68,11 @@ public class LoginTask extends AsyncTask<String, Integer, String>{
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
 
-        // Push the cookie to shared preferences
-        SharedPreferences.Editor editor = this.session.getPrefs().edit();
-//        editor.putString("sessionid", s);
-        editor.putInt("sessionid", Integer.parseInt(s));
-        editor.putString("sessionUser", this.session.getUser());
-        editor.commit();
+        if (!s.equals("empty cookie")) {
+            loginSessionInterface.loginPass(s);
+        }
+        else {
+            loginSessionInterface.loginFailed("invalid credentials");
+        }
     }
 }

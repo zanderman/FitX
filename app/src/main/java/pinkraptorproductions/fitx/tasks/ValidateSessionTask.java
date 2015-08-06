@@ -37,6 +37,7 @@ public class ValidateSessionTask extends AsyncTask<String, Integer, Boolean> {
 
         // Initialize user parameter.
         String user = params[0];
+        Log.d("vst", user);
 
         // Check if the current user is logged in.
         try {

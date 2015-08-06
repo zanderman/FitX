@@ -2,7 +2,9 @@ package pinkraptorproductions.fitx.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -19,12 +21,19 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import pinkraptorproductions.fitx.AppActivity;
 import pinkraptorproductions.fitx.R;
 import pinkraptorproductions.fitx.interfaces.ProgressInteractionListener;
 
@@ -34,6 +43,7 @@ public class Progress extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
 
     private static final String KEY_STORE_MILES = "miles";
     private static final String KEY_STORE_MINUTES = "minutes";
@@ -65,13 +75,19 @@ public class Progress extends Fragment {
     // Animation object.
     private Animation anim;
 
+    // Shared Preferences
+    SharedPreferences prefs;
+
+    Bundle downloadedEntries;
+
 
     // TODO: Rename and change types and number of parameters
-    public static Progress newInstance(String param1, String param2) {
+    public static Progress newInstance(String param1, String param2, Bundle downloadedEntries) {
         Progress fragment = new Progress();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
+        args.putBundle(ARG_PARAM3, downloadedEntries);
         fragment.setArguments(args);
         return fragment;
     }
@@ -86,6 +102,7 @@ public class Progress extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            downloadedEntries = getArguments().getBundle(ARG_PARAM3);
         }
     }
 
@@ -144,12 +161,20 @@ public class Progress extends Fragment {
                 ));
             }
         }
-
-//        // If no saved state is available, create dummy entries.
-//        else {
-//            temp.add(new ProgressEntry(12, 2.3f, 3, 4.5f, "555", "423"));
-//            temp.add(new ProgressEntry(16, 2.1f, 99, 4.5f, "7777888", "34"));
-//        }
+        if (downloadedEntries != null) {
+            for (int i = 0; i < downloadedEntries.getStringArray(KEY_STORE_ID).length; i++) {
+                temp.add(new ProgressEntry(
+                        downloadedEntries.getIntArray(KEY_STORE_STEPS)[i],
+                        downloadedEntries.getFloatArray(KEY_STORE_MILES)[i],
+                        downloadedEntries.getIntArray(KEY_STORE_MINUTES)[i],
+                        downloadedEntries.getFloatArray(KEY_STORE_CUPS)[i],
+                        downloadedEntries.getStringArray(KEY_STORE_ID)[i],
+                        downloadedEntries.getStringArray(KEY_STORE_DATE)[i]
+                ));
+            }
+            // Nullify the bundle so that they can't be re-added.
+            downloadedEntries = null;
+        }
 
         //linking  java side with the xml side for the ListView
         entries = (ListView) view.findViewById(R.id.progressList);
@@ -338,7 +363,7 @@ public class Progress extends Fragment {
         public void onClick(View view) {
 
             // Declare java objects
-            String type, id, date;
+            String type, id, date, index;
             final int indexInAdapter, firstVisible;
             int stepsFromTheEditText, minutesFromTheEditText;
             float milesFromTheEditText, cupsFromTheEditText;
@@ -348,10 +373,10 @@ public class Progress extends Fragment {
 
             // Type of button that was clicked.
             type = ((String[]) view.getTag())[1];
-            id = ((String[]) view.getTag())[0];
+            index = ((String[]) view.getTag())[0];
 
             // this is the index of the entry to be saved
-            indexInAdapter = Integer.parseInt(id);
+            indexInAdapter = Integer.parseInt(index);
 
             // index of the first visible listview view
             firstVisible = entries.getFirstVisiblePosition();
@@ -359,6 +384,8 @@ public class Progress extends Fragment {
             // Get list item row index.
             row = entries.getChildAt(indexInAdapter - firstVisible);
 
+            // Initialize the ID from the adapter.
+            id = adapter.getItem(indexInAdapter).id;
 
             // Temporary EditText objects.
             EditText temp_miles, temp_cups, temp_steps, temp_min;
@@ -406,6 +433,8 @@ public class Progress extends Fragment {
             // Set the date field for the entry.
             now = Calendar.getInstance();
             date = sdf.format(now.getTime());
+
+//            String myid = adapter.getItem(indexInAdapter).id;
 
             // Create a temporary entry.
             ProgressEntry newEntry = new ProgressEntry(stepsFromTheEditText, milesFromTheEditText,

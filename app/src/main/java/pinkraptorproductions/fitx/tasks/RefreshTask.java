@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
+import pinkraptorproductions.fitx.AppActivity;
 import pinkraptorproductions.fitx.fragments.Progress;
 
 /**
@@ -85,7 +86,10 @@ public class RefreshTask implements Runnable {
         Bundle bundle = new Bundle();
 
         try {
-            HttpURLConnection conn = (HttpURLConnection) ((new URL(this.url + "?username=" + user).openConnection()));
+            String query = this.url + "/rest/progress?username=" + user;
+            Log.d("hw4", "[refresh] query = " + query);
+
+            HttpURLConnection conn = (HttpURLConnection) ((new URL(query).openConnection()));
             conn.setReadTimeout(10000 /* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);
             conn.setRequestProperty("Cookie", this.cookie);
@@ -116,7 +120,7 @@ public class RefreshTask implements Runnable {
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } catch (Exception e) {
-            Log.d("vt", " and the exception is " + e);
+            Log.d("hw4", " and the exception is " + e);
             bundle.putBoolean("result", false);
             return bundle;
 
@@ -184,6 +188,10 @@ public class RefreshTask implements Runnable {
 
         // Go through each list entry and populate the save arrays.
         for (int i = 0; i < entries.size(); i++) {
+            Log.d("hw4", "[download]: id["+i+"] = "
+                + entries.get(i).id
+            );
+
             store_miles[i] = entries.get(i).miles;
             store_cups[i] = entries.get(i).cups;
             store_steps[i] = entries.get(i).steps;

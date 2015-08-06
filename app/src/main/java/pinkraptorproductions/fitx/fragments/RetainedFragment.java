@@ -94,7 +94,22 @@ public class RetainedFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
 
+//            Bundle data = msg.getData().getBundle("data");
+//            for (int i = 0; i < data.size(); i++) {
+//
+//                //Log the entries
+//                Log.d("hw4", "entry [" + Integer.toString(i) + "]: "
+//                                + "\nsteps=" + Integer.toString(data.getIntArray("steps")[i])
+//                                + "\nmiles=" + Float.toString(data.getIntArray("miles")[i])
+//                                + "\nminutes=" + Integer.toString(data.getIntArray("minutes")[i])
+//                                + "\ncups=" + Float.toString(data.getIntArray("cups")[i])
+//                                + "\nid=" + data.getIntArray("_id")[i]
+//                                + "\ndate=" + data.getIntArray("date")[i]
+//                );
+//            }
+
             if (msg.getData().getBoolean("result"))
+                Log.d("hw4", "data bundle length: " + Integer.toString(msg.getData().getBundle("data").size()));
                 listener.newEntries(
                         msg.getData().getBundle("data")
                 );
@@ -117,10 +132,10 @@ public class RetainedFragment extends Fragment {
         refreshThread.enqueTask(new RefreshTask(
                 cookie,
                 user,
-                AppActivity.BASE_URL + "/rest/progress/",
+                AppActivity.BASE_URL,
                 handler
         ));
-        Log.d("RetainedFragment", "enqueued the task");
+        Log.d("hw4", "enqueued the task");
         //updates messages
         //to-do, next homework
     }

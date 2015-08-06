@@ -15,10 +15,14 @@ import android.widget.Toast;
 import java.util.Calendar;
 
 import pinkraptorproductions.fitx.classes.Session;
+import pinkraptorproductions.fitx.interfaces.LoginSessionInterface;
 import pinkraptorproductions.fitx.tasks.LoginTask;
 
 
-public class LoginActivity extends Activity implements View.OnClickListener {
+public class LoginActivity extends Activity implements
+        View.OnClickListener,
+        LoginSessionInterface
+{
 
     // XML elements
     private Button login;
@@ -106,18 +110,18 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 if (validateEntry(username, password)) {
 
                     // Validate credentials on the network.
-                    new LoginTask(session).execute(new String[] {AppActivity.BASE_URL, username, password});
+                    new LoginTask(this, session).execute(new String[]{AppActivity.BASE_URL, username, password});
 
-                    // Save the session data in a bundle.
-                    Bundle bundle = new Bundle();
-                    bundle.putString("cookie", session.getCookie());
-
-                    // Pass information to the parent activity.
-                    Intent result = new Intent();
-                    result.putExtra("login", "success");
-                    result.putExtra("sessionInfo", bundle);
-                    setResult(RESULT_OK, result);
-                    finish();
+//                    // Save the session data in a bundle.
+//                    Bundle bundle = new Bundle();
+//                    bundle.putString("cookie", session.getCookie());
+//
+//                    // Pass information to the parent activity.
+//                    Intent result = new Intent();
+//                    result.putExtra("login", "success");
+//                    result.putExtra("sessionInfo", bundle);
+//                    setResult(RESULT_OK, result);
+//                    finish();
                 } else {
                     if (username.length() == 0) {
                         usernameEditText.setError("field empty!");
@@ -238,5 +242,35 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private void update(String message) {
         genToast.setText(message);
         genToast.show();
+    }
+
+    @Override
+    public void loginPass(String cookie) {
+
+        // Push the cookie to shared preferences
+        SharedPreferences.Editor editor = session.getPrefs().edit();
+        editor.putString("sessionid", cookie);
+        editor.putString("sessionUser", session.getUser());
+        editor.commit();
+
+        // ----
+
+        // Save the session data in a bundle.
+        Bundle bundle = new Bundle();
+        bundle.putString("cookie", session.getCookie());
+
+        // Pass information to the parent activity.
+        Intent result = new Intent();
+        result.putExtra("login", "success");
+        result.putExtra("sessionInfo", bundle);
+        setResult(RESULT_OK, result);
+        finish();
+    }
+
+    @Override
+    public void loginFailed(String message) {
+        usernameEditText.setError("invalid");
+        passwordEditText.setError("invalid");
+        Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show();
     }
 }
