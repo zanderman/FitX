@@ -6,20 +6,13 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Map;
 
 import pinkraptorproductions.fitx.classes.Session;
 import pinkraptorproductions.fitx.fragments.Dashboard;
@@ -33,7 +26,6 @@ import pinkraptorproductions.fitx.interfaces.ProgressInteractionListener;
 import pinkraptorproductions.fitx.interfaces.RetainedFragmentInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
 import pinkraptorproductions.fitx.tasks.DeleteTask;
-import pinkraptorproductions.fitx.tasks.LoginTask;
 import pinkraptorproductions.fitx.tasks.SaveTask;
 import pinkraptorproductions.fitx.tasks.ValidateSessionTask;
 
@@ -51,9 +43,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     private static final String TAG_SETTINGS = "settings";
     private static final String TAG_SOCIAL = "social";
     private static final String TAG_RETAIN = "retain";
-    private static String TAG_CURRENT;
-
-    private static final String KEY_STORE_ITEMID = "itemId";
 
     private static final String KEY_STORE_MILES = "miles";
     private static final String KEY_STORE_MINUTES = "minutes";
@@ -88,7 +77,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     SharedPreferences.Editor editor;
 
     // Define the asynctask
-//    SessionTask session;
     ValidateSessionTask validateSessionTask;
 
     // User Session Object
@@ -129,16 +117,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
                     // Toast to screen.
                     makeToast("Login successful!");
-
-
-//                    // Push the session token to SharedPreferences.
-//                    editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
-//                    editor.putInt("sessionid", Calendar.getInstance().get(Calendar.MINUTE));
-//                    editor.commit();
-
-//                    // Start the new session monitoring task.
-//                    session = new SessionTask(this);
-//                    session.execute();
                     break;
 
                 case "exit":
@@ -181,12 +159,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         // Check user credentials on separate thread.
         prefs = getSharedPreferences("usersession", MODE_PRIVATE);
         new ValidateSessionTask(this, session).execute(prefs.getString("sessionUser", "default"));
-
-
-//        checkSession();
-//
-//        // Check if credentials were already validated.
-//        if (!loggedIn) loadLogin();
     }
 
     @Override
@@ -258,7 +230,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
             // Dashboard icon is clicked.
             case R.id.action_dashboard:
-                TAG_CURRENT = TAG_DASHBOARD;
                 // Checks if dashboard fragment exists in the manager.
                 dashboard = fm.findFragmentByTag(TAG_DASHBOARD);
 
@@ -276,7 +247,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
             // Settings icon is clicked.
             case R.id.action_settings:
-                TAG_CURRENT = TAG_SETTINGS;
                 // Checks if settings fragment exists in the manager.
                 settings = fm.findFragmentByTag(TAG_SETTINGS);
 
@@ -292,7 +262,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
             // Social icon is clicked.
             case R.id.action_social:
-                TAG_CURRENT = TAG_SOCIAL;
                 // Checks if social fragment exists in the manager.
                 social = fm.findFragmentByTag(TAG_SOCIAL);
 
@@ -308,7 +277,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
             // Messages icon is clicked.
             case R.id.action_messages:
-                TAG_CURRENT = TAG_MESSAGES;
                 // Checks if social fragment exists in the manager.
                 messages = (Messages) fm.findFragmentByTag(TAG_MESSAGES);
 
@@ -324,7 +292,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
             // Progress icon is clicked.
             case R.id.action_progress:
-                TAG_CURRENT = TAG_PROGRESS;
                 // Checks if social fragment exists in the manager.
                 progress = (Progress) fm.findFragmentByTag(TAG_PROGRESS);
 
@@ -364,16 +331,11 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     //MUST HAVE TWO CALLABACK METHODS HERE THAT RECEIVE DATA FROM PROGRESS.JAVA
     public void saveEntry(Progress.ProgressEntry entry) {
-//        newToast("[activity] " + "Updated entry with:"
-//                + "\nMiles: " + entry.miles
-//                + "Cups: " + entry.cups
-//                + "\nMinutes: " + entry.minutes
-//                + "Steps: " + entry.steps);
+        // Start AsyncTask for saving an entry.
         new SaveTask(this).execute(entry);
     }
 
     public void deleteEntry(Progress.ProgressEntry entry) {
-
         // Start AsyncTask for deleting an entry.
         new DeleteTask(this, entry).execute(entry.id);
     }
@@ -389,36 +351,6 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         Intent login = new Intent(AppActivity.this, LoginActivity.class);
         startActivityForResult(login, 0);
     }
-
-    public void checkSession() {
-        // Get time of onResume method call as save as the current token.
-        int minuteCount = Calendar.getInstance().get(Calendar.MINUTE);
-
-        // Get reference to SystemPreferences "usersession".
-        prefs = getSharedPreferences("usersession", MODE_PRIVATE);
-
-        // Get the user session id if available.
-        int restoredKey = prefs.getInt("sessionid", 999); // returns 999 if this preference does not exits.
-
-        boolean restoreLogin = prefs.getBoolean("restoreLogin", false);
-
-        // Check validate user session id. (id = minute count)
-        if ( (restoredKey != minuteCount) || (restoreLogin) ) {
-            // Keys do not match, go to postExecute method.
-            loggedIn = false;
-
-            // Toast to screen
-            makeToast("Session expired.");
-
-            // Change the flag in shared preferences.
-            editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
-            editor.putBoolean("restoreLogin", false);
-            editor.commit();
-        } else {
-            loggedIn = true;
-        }
-    }
-
 
     // Update the generic toast message upon request.
     private void makeToast(String message) {
@@ -450,14 +382,13 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
         // Check if the retained fragment is already created.
         if (retainedFragment != null) {
-//            retainedFragment.startRefreshTask();
             prefs = getSharedPreferences("usersession", MODE_PRIVATE);
             String user = prefs.getString(getString(R.string.sp_tag_session_username), "default");
 
             Log.d("hw4","starting refresh thread: user=" + user + " | cookie=" + this.session.getCookie());
             retainedFragment.initiateProgressLoad(
                     this.session.getCookie(),
-                    user//this.session.getUser()
+                    user
             );
             Log.d("hw4", "called startRefreshTask()");
         } else {
@@ -514,59 +445,4 @@ public class AppActivity extends Activity implements ProgressInteractionListener
             downloadedEntries = data;
         }
     }
-
-//    // Task to handle user login session.
-//    private class SessionTask extends AsyncTask<Void, Integer, Boolean> {
-//
-//         private AppActivity activity;
-//
-//        public SessionTask(AppActivity activity) {
-//            this.activity = activity;
-//        }
-//
-//        @Override
-//        protected Boolean doInBackground(Void... params) {
-//
-//            while (loggedIn) {
-//                try {
-//                    Thread.sleep(sleepLength);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//
-//                this.activity.checkSession();
-//            }
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Boolean bool) {
-//            super.onPostExecute(bool);
-//
-//            // Push the flag to SharedPreferences.
-//            editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
-//            editor.putBoolean("restoreLogin", true);
-//            editor.commit();
-//        }
-//
-//        @Override
-//        protected void onProgressUpdate(Integer... values) {
-//            super.onProgressUpdate(values);
-//        }
-//
-//        @Override
-//        protected void onCancelled(Boolean bool) {
-//            super.onCancelled(bool);
-//        }
-//
-//        @Override
-//        protected void onCancelled() {
-//            super.onCancelled();
-//        }
-//    }
 }

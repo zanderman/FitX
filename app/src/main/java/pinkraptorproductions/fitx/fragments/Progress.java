@@ -195,11 +195,6 @@ public class Progress extends Fragment {
 
                 // Add a new entry
                 addEntry(0, 0, 0, 0, "tempid", "__/__/__ @ __:__:__");
-
-                // Code from homework #3
-//                FLAG_ADD = true;
-//                adapter.add(new ProgressEntry(0, 0, 0, 0, "tempid", "__/__/__ @ __:__:__"));
-//                adapter.notifyDataSetChanged();
             }
         });
         return view;
