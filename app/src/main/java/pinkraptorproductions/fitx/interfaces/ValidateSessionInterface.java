@@ -6,4 +6,5 @@ package pinkraptorproductions.fitx.interfaces;
 public interface ValidateSessionInterface {
 
     public void loadLogin ();
+    public void startNewService();
 }

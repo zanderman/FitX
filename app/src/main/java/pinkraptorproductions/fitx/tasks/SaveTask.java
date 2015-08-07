@@ -3,6 +3,7 @@ package pinkraptorproductions.fitx.tasks;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -55,7 +56,7 @@ public class SaveTask extends AsyncTask<Progress.ProgressEntry, Integer, Void> {
 
             HttpURLConnection conn = (HttpURLConnection) ((new URL(query).openConnection()));
             conn.setDoOutput(true);
-            conn.setReadTimeout(10000 /* milliseconds */);
+            conn.setReadTimeout(2000 /* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
@@ -104,6 +105,10 @@ public class SaveTask extends AsyncTask<Progress.ProgressEntry, Integer, Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putBoolean("saveentry", false);
+        editor.commit();
 
         AppActivity.newToast("[activity] " + "Updated entry with:"
                 + "\nMiles: " + this.entry.miles

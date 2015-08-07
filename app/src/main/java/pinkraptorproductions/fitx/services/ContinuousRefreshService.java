@@ -1,8 +1,12 @@
 package pinkraptorproductions.fitx.services;
 
+import android.app.Activity;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
@@ -69,10 +73,22 @@ public class ContinuousRefreshService extends Service {
         editor.commit();
 
         // Start the AsyncTask
-        task = new ServiceTask();
-        task.execute();
+        startServiceTask();
+//        task = new ServiceTask();
+//        task.execute();
 
         return START_STICKY;
+    }
+
+    public void startServiceTask() {
+        // Start the AsyncTask
+        task = new ServiceTask();
+        task.execute();
+    }
+
+    public void stopServiceTask() {
+        if (task != null)
+            task.onCancelled();
     }
 
     @Override
@@ -80,15 +96,20 @@ public class ContinuousRefreshService extends Service {
 
         // update SP
         SharedPreferences server_status = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor=server_status.edit();
+        SharedPreferences.Editor editor = server_status.edit();
         editor.putBoolean("started", false);
         editor.commit();
 
         // Cancel the AsynTask
-        if (task != null) task.onCancelled();
+        if (task != null) {
+            task.onCancelled();
+            Log.d("hw4","[cancelled] the refresh task onDestroy.");
+        }
 
         super.onDestroy();
     }
+
+
 
     // allows service to have reference to the binded activity.
     public void sendCallbacks(AppActivity activity) {
@@ -99,11 +120,18 @@ public class ContinuousRefreshService extends Service {
     public class ServiceTask extends AsyncTask<Void, Void, Void> {
 
         volatile boolean run;
+        SharedPreferences prefs;
 
         public ServiceTask() {
             super();
-
             this.run = true;
+        }
+
+        private boolean isNetworkAvailable() {
+            ConnectivityManager connectivityManager
+                    = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
         }
 
         @Override
@@ -116,11 +144,18 @@ public class ContinuousRefreshService extends Service {
                     e.printStackTrace();
                 }
 
-//                this.onProgressUpdate();
+                prefs = PreferenceManager.getDefaultSharedPreferences(getApplication().getApplicationContext());
 
                 // Start refreshthread on AppActivity
-                Log.d("hw4","running service task again...");
-//                if (activity != null) activity.startRefreshThread();
+                Log.d("hw4","attempting service task again...");
+                Log.d("hw4","network: " + isNetworkAvailable());
+                Log.d("hw4","deleteentry: " + prefs.getBoolean("deleteentry", false));
+                Log.d("hw4","saveentry: " + prefs.getBoolean("saveentry", false));
+
+                if (activity != null && isNetworkAvailable() && !prefs.getBoolean("deleteentry", false) && !prefs.getBoolean("saveentry", false)) {
+                    Log.d("hw4","network is available and activity is not null.");
+                    activity.startRefreshThread();
+                }
             }
 
             return null;

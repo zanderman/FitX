@@ -3,10 +3,14 @@ package pinkraptorproductions.fitx;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -25,12 +29,14 @@ import pinkraptorproductions.fitx.interfaces.MessagesInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ProgressInteractionListener;
 import pinkraptorproductions.fitx.interfaces.RetainedFragmentInteractionListener;
 import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
+import pinkraptorproductions.fitx.services.ContinuousRefreshService;
 import pinkraptorproductions.fitx.tasks.DeleteTask;
 import pinkraptorproductions.fitx.tasks.SaveTask;
 import pinkraptorproductions.fitx.tasks.ValidateSessionTask;
 
 
-public class AppActivity extends Activity implements ProgressInteractionListener,
+public class AppActivity extends Activity implements ServiceConnection,
+        ProgressInteractionListener,
         Dashboard.DashboardInteractionListener, Social.SocialInteractionListener,
         Settings.SettingsInteractionListener, MessagesInteractionListener,
         RetainedFragmentInteractionListener,
@@ -90,6 +96,15 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     private Bundle downloadedEntries;
 
+    // Boolean to tell if you're bound with a service
+    boolean bound;
+
+    // SP to tell what's going on inside the service
+    private SharedPreferences serviceStatus;
+
+    // Service attribute
+    ContinuousRefreshService service;
+
 
 
     @Override
@@ -117,6 +132,11 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
                     // Toast to screen.
                     makeToast("Login successful!");
+
+                    if (!serviceIsStarted()) {
+                        this.startService(new Intent(AppActivity.this, ContinuousRefreshService.class));
+                    }
+                    bindWithService();
                     break;
 
                 case "exit":
@@ -148,13 +168,34 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
         // Start the retained fragment.
         connectWithRetainedFragment();
+
+        // Bind with service
+//        bindWithService();
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore the progress fragment
+        progress = (Progress) fm.findFragmentByTag(TAG_PROGRESS);
+
+        if (!serviceIsStarted()) {
+            this.startService(new Intent(AppActivity.this, ContinuousRefreshService.class));
+        }
+        bindWithService();
+    }
 
     // Run just before activity is running.
     @Override
     protected void onResume() {
         super.onResume();
+
+//        if (progress == null) {
+//            makeToast("progress was null onResume.");
+//            // Restore the progress fragment
+//            progress = (Progress) fm.findFragmentByTag(TAG_PROGRESS);
+//        }
 
         // Check user credentials on separate thread.
         prefs = getSharedPreferences("usersession", MODE_PRIVATE);
@@ -164,8 +205,15 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     @Override
     protected void onDestroy() {
 //        if (session != null) session.onCancelled();
+        if (serviceIsStarted()) {
+//            service.onDestroy();
+            getApplicationContext().stopService(new Intent(this, ContinuousRefreshService.class));
+            Log.d("hw4","[stopping] service from activity onDestroy.");
+        }
         super.onDestroy();
     }
+
+
 
     // this is triggered whenever activity is created (in cases when buttons are hidden, this
     // callback happens when the menu button is pressed.
@@ -182,14 +230,62 @@ public class AppActivity extends Activity implements ProgressInteractionListener
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onPause() {
+        if (bound) {
+            Log.d("hw4", "[unbinding] from service");
+            this.unbindService(this);
+        }
+        else Log.d("hw4", "already [unbound] from service");
+
+        super.onPause();
+    }
+
+
+    /*
+    * Service methods
+    * */
+
+    // Bind with the service
+    public void bindWithService() {
+        serviceStatus = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Log.d("hw4","attempting to bind with service...");
+        Log.d("hw4", "current service status is: " + serviceStatus.contains("started"));
+
+        if (serviceIsStarted()) {
+            Intent intent = new Intent(AppActivity.this, ContinuousRefreshService.class);
+            // Bind with the service
+            this.bindService(intent, this, Context.BIND_AUTO_CREATE);
+
+            // Change bound flag value;
+            bound = true;
+        }
+    }
+
+    // Determine if the service is already started
+    public boolean serviceIsStarted() {
+        serviceStatus = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean flag = serviceStatus.contains("started") && serviceStatus.getBoolean("started", false);
+        Log.d("hw4", "service is running?: " + flag);
+        return flag;
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        ContinuousRefreshService.LocalBinder binder = (ContinuousRefreshService.LocalBinder) service;
+        this.service = binder.getServiceInstance();
+
+        // Assign the activity to send callbacks to.
+        this.service.sendCallbacks(this);
+
+        Log.d("hw4","Service is [connected] to AppActivity");
     }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        Log.d("hw4","Service is [disconnected] to AppActivity");
+    }
+
+
 
     //helper method that removes the current fragment
     //if you don't remove current fragment and add a new one
@@ -331,13 +427,52 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     //MUST HAVE TWO CALLABACK METHODS HERE THAT RECEIVE DATA FROM PROGRESS.JAVA
     public void saveEntry(Progress.ProgressEntry entry) {
-        // Start AsyncTask for saving an entry.
-        new SaveTask(this).execute(entry);
+
+        editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+        editor.putBoolean("saveentry", true);
+        editor.commit();
+
+
+        if (service == null)
+            new SaveTask(this).execute(entry);
+        else {
+            // Start AsyncTask for saving an entry.
+            Log.d("hw4", "starting SaveTask");
+            service.stopServiceTask();
+            new SaveTask(this).execute(entry);
+            Log.d("hw4", "starting SaveTask");
+            service.startServiceTask();
+        }
+//        // Start AsyncTask for saving an entry.
+//        Log.d("hw4", "starting SaveTask");
+//        service.stopServiceTask();
+//        new SaveTask(this).execute(entry);
+//        Log.d("hw4", "starting SaveTask");
+//        service.startServiceTask();
     }
 
     public void deleteEntry(Progress.ProgressEntry entry) {
-        // Start AsyncTask for deleting an entry.
-        new DeleteTask(this, entry).execute(entry.id);
+
+        editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+        editor.putBoolean("deleteentry", true);
+        editor.commit();
+
+
+        if (service == null)
+            new DeleteTask(this, entry).execute(entry.id);
+        else {
+            Log.d("hw4", "starting DeleteTask");
+            service.stopServiceTask();
+            new DeleteTask(this, entry).execute(entry.id);
+            Log.d("hw4", "stopping DeleteTask");
+            service.startServiceTask();
+        }
+//        // Start AsyncTask for deleting an entry.
+//        Log.d("hw4", "starting DeleteTask");
+//        service.stopServiceTask();
+//        new DeleteTask(this, entry).execute(entry.id);
+//        Log.d("hw4", "stopping DeleteTask");
+//        service.startServiceTask();
     }
 
     @Override
@@ -350,6 +485,15 @@ public class AppActivity extends Activity implements ProgressInteractionListener
         // Start the login activity.
         Intent login = new Intent(AppActivity.this, LoginActivity.class);
         startActivityForResult(login, 0);
+    }
+
+    @Override
+    public void startNewService() {
+        loggedIn = true;
+        if (!serviceIsStarted()) {
+            this.startService(new Intent(AppActivity.this, ContinuousRefreshService.class));
+        }
+        bindWithService();
     }
 
     // Update the generic toast message upon request.
@@ -422,27 +566,66 @@ public class AppActivity extends Activity implements ProgressInteractionListener
 
     public void newEntries(Bundle data) {
 
-        if (progress == null) {
-            Log.d("hw4", "Progress fragment was null.");
-        }
-
         Log.d("hw4","[activity] data bundle length: " + data.size());
 
         Log.d("hw4", "adding entries");
 
-        for (int i = 0; i < data.getStringArray(KEY_STORE_ID).length; i++) {
+        if (progress == null) {
+            Log.d("hw4", "Progress fragment was null.");
+            for (int i = 0; i < data.getStringArray(KEY_STORE_ID).length; i++) {
 
-            //Log the entries
-            Log.d("hw4", "entry ["+Integer.toString(i)+"]: "
-                + "\nsteps=" + Integer.toString(data.getIntArray(KEY_STORE_STEPS)[i])
-                + "\nmiles=" + Float.toString(data.getFloatArray(KEY_STORE_MILES)[i])
-                + "\nminutes=" + Integer.toString(data.getIntArray(KEY_STORE_MINUTES)[i])
-                + "\ncups=" + Float.toString(data.getFloatArray(KEY_STORE_CUPS)[i])
-                + "\nid=" + data.getStringArray(KEY_STORE_ID)[i]
-                + "\ndate=" + data.getStringArray(KEY_STORE_DATE)[i]
-            );
+                //Log the entries
+                Log.d("hw4", "entry ["+Integer.toString(i)+"]: "
+                                + "\nsteps=" + Integer.toString(data.getIntArray(KEY_STORE_STEPS)[i])
+                                + "\nmiles=" + Float.toString(data.getFloatArray(KEY_STORE_MILES)[i])
+                                + "\nminutes=" + Integer.toString(data.getIntArray(KEY_STORE_MINUTES)[i])
+                                + "\ncups=" + Float.toString(data.getFloatArray(KEY_STORE_CUPS)[i])
+                                + "\nid=" + data.getStringArray(KEY_STORE_ID)[i]
+                                + "\ndate=" + data.getStringArray(KEY_STORE_DATE)[i]
+                );
 
-            downloadedEntries = data;
+                downloadedEntries = data;
+            }
         }
+
+        // Progress fragment is currently open
+        else {
+            for (int i = 0; i < data.getStringArray(KEY_STORE_ID).length; i++) {
+
+                progress.addEntry(
+                        data.getIntArray(KEY_STORE_STEPS)[i],
+                        data.getFloatArray(KEY_STORE_MILES)[i],
+                        data.getIntArray(KEY_STORE_MINUTES)[i],
+                        data.getFloatArray(KEY_STORE_CUPS)[i],
+                        data.getStringArray(KEY_STORE_ID)[i],
+                        data.getStringArray(KEY_STORE_DATE)[i]
+                );
+
+                //Log the entries
+                Log.d("hw4", "entry ["+Integer.toString(i)+"]: "
+                                + "\nsteps=" + Integer.toString(data.getIntArray(KEY_STORE_STEPS)[i])
+                                + "\nmiles=" + Float.toString(data.getFloatArray(KEY_STORE_MILES)[i])
+                                + "\nminutes=" + Integer.toString(data.getIntArray(KEY_STORE_MINUTES)[i])
+                                + "\ncups=" + Float.toString(data.getFloatArray(KEY_STORE_CUPS)[i])
+                                + "\nid=" + data.getStringArray(KEY_STORE_ID)[i]
+                                + "\ndate=" + data.getStringArray(KEY_STORE_DATE)[i]
+                );
+            }
+        }
+
+//        for (int i = 0; i < data.getStringArray(KEY_STORE_ID).length; i++) {
+//
+//            //Log the entries
+//            Log.d("hw4", "entry ["+Integer.toString(i)+"]: "
+//                + "\nsteps=" + Integer.toString(data.getIntArray(KEY_STORE_STEPS)[i])
+//                + "\nmiles=" + Float.toString(data.getFloatArray(KEY_STORE_MILES)[i])
+//                + "\nminutes=" + Integer.toString(data.getIntArray(KEY_STORE_MINUTES)[i])
+//                + "\ncups=" + Float.toString(data.getFloatArray(KEY_STORE_CUPS)[i])
+//                + "\nid=" + data.getStringArray(KEY_STORE_ID)[i]
+//                + "\ndate=" + data.getStringArray(KEY_STORE_DATE)[i]
+//            );
+//
+//            downloadedEntries = data;
+//        }
     }
 }

@@ -135,9 +135,16 @@ public class Progress extends Fragment {
         outState.putStringArray(KEY_STORE_DATE, store_date);
         outState.putStringArray(KEY_STORE_ID, store_id);
 
+        Log.d("hw4","onSave adapter.count(): " + adapter.getCount());
+
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
 
+        downloadedEntries = null;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -148,8 +155,10 @@ public class Progress extends Fragment {
         // a temporary placeholder for the hardcoded data
         ArrayList<ProgressEntry> temp = new ArrayList<ProgressEntry>();
 
+
         // If there is a saved state, recreate stored objects.
         if (savedInstanceState != null) {
+            Log.d("hw4","savedInstanceState.length: " + savedInstanceState.getStringArray(KEY_STORE_ID).length);
             for (int i = 0; i < savedInstanceState.getStringArray(KEY_STORE_ID).length; i++) {
                 temp.add(new ProgressEntry(
                         savedInstanceState.getIntArray(KEY_STORE_STEPS)[i],
@@ -160,8 +169,12 @@ public class Progress extends Fragment {
                         savedInstanceState.getStringArray(KEY_STORE_DATE)[i]
                 ));
             }
+            // Nullify the bundle so that they can't be re-added.
+            downloadedEntries = null;
         }
+
         if (downloadedEntries != null) {
+            Log.d("hw4","downloadEntries.length: " + downloadedEntries.getStringArray(KEY_STORE_ID).length);
             for (int i = 0; i < downloadedEntries.getStringArray(KEY_STORE_ID).length; i++) {
                 temp.add(new ProgressEntry(
                         downloadedEntries.getIntArray(KEY_STORE_STEPS)[i],
@@ -211,11 +224,25 @@ public class Progress extends Fragment {
         }
     }
 
+    public boolean isUnique(String idToMatch) {
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).id.equals(idToMatch)) return false;
+        }
+
+        // If we get here, then no matching id was found.
+        return true;
+    }
+
+
     // Add entry to entry adapter.
     public void addEntry(int steps, float miles, int minutes, float cups, String id, String date) {
-        FLAG_ADD = true;
-        adapter.add(new ProgressEntry(steps, miles, minutes, cups, id, date));
-        adapter.notifyDataSetChanged();
+
+        if (isUnique(id)) {
+            FLAG_ADD = true;
+            adapter.add(new ProgressEntry(steps, miles, minutes, cups, id, date));
+            adapter.notifyDataSetChanged();
+        }
+        else Log.d("hw4", "Item already exists, id: " + id);
     }
 
     @Override
@@ -441,9 +468,6 @@ public class Progress extends Fragment {
 
                 FLAG_DELETE = true;
 
-                //COMMUNICATE TO ACTIVITY WHICH PROGRESS ENTRY WAS DELETED
-                talkToActivity.deleteEntry(newEntry);
-
                 // Animate the deletion of the selected entry.
                 anim = AnimationUtils.loadAnimation(row.getContext(), R.anim.slide_right);
                 anim.setAnimationListener(new Animation.AnimationListener() {
@@ -465,6 +489,9 @@ public class Progress extends Fragment {
                     }
                 });
                 row.startAnimation(anim);
+
+                //COMMUNICATE TO ACTIVITY WHICH PROGRESS ENTRY WAS DELETED
+                talkToActivity.deleteEntry(newEntry);
             }
 
             // Only save if the data is valid.

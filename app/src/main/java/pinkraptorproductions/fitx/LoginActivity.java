@@ -269,8 +269,13 @@ public class LoginActivity extends Activity implements
 
     @Override
     public void loginFailed(String message) {
-        usernameEditText.setError("invalid");
-        passwordEditText.setError("invalid");
-        Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+
+        if (message.equals("no network connection"))
+            Toast.makeText(this, "No network connection.", Toast.LENGTH_SHORT).show();
+        if (message.equals("invalid credentials")) {
+            usernameEditText.setError("invalid");
+            passwordEditText.setError("invalid");
+            Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -68,11 +68,19 @@ public class LoginTask extends AsyncTask<String, Integer, String>{
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
 
-        if (!s.equals("empty cookie")) {
-            loginSessionInterface.loginPass(s);
+        if (s.equals("no network connection")) {
+            Log.d("hw4", "s: " + s);
+            loginSessionInterface.loginFailed(s);
+            return;
+        }
+        if (s.equals("empty cookie")) {
+            Log.d("hw4", "s: " + s);
+            loginSessionInterface.loginFailed("invalid credentials");
+            return;
         }
         else {
-            loginSessionInterface.loginFailed("invalid credentials");
+            loginSessionInterface.loginPass(s);
+            return;
         }
     }
 }

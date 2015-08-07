@@ -2,6 +2,8 @@ package pinkraptorproductions.fitx.classes;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -72,6 +74,13 @@ public class Session {
     // Return context.
     public Context getContext() { return this.context; }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
 
     //perform login
     public String login(String myurl, String username, String password) throws IOException, JSONException {
@@ -87,6 +96,9 @@ public class Session {
                 this.context.getString(R.string.sp_tag_session),
                 context.MODE_PRIVATE
         );
+
+        Log.d("hw4", "network availablility: " + isNetworkAvailable());
+        if (!isNetworkAvailable()) return "no network connection";
 
         // Try network call
         try {
@@ -184,6 +196,10 @@ public class Session {
 
         Log.d("hw4","cookie in the onResume is "+this.cookie);
         InputStream is = null;
+
+        // Check for a live network connection.
+        Log.d("hw4", "network availablility: " + isNetworkAvailable());
+        if (!isNetworkAvailable()) return false;
 
         try {
 

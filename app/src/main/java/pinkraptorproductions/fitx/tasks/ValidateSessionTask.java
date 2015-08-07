@@ -1,7 +1,6 @@
 package pinkraptorproductions.fitx.tasks;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -9,7 +8,6 @@ import org.json.JSONException;
 
 import java.io.IOException;
 
-import pinkraptorproductions.fitx.AppActivity;
 import pinkraptorproductions.fitx.classes.Session;
 import pinkraptorproductions.fitx.interfaces.ValidateSessionInterface;
 
@@ -60,6 +58,9 @@ public class ValidateSessionTask extends AsyncTask<String, Integer, Boolean> {
             Log.d("vst", "user is not logged in");
             sessionInterface.loadLogin();
         }
-        else Log.d("vst", "user is already logged in");
+        else {
+            sessionInterface.startNewService();
+            Log.d("vst", "user is already logged in");
+        }
     }
 }
