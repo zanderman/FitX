@@ -443,16 +443,11 @@ public class AppActivity extends Activity implements ServiceConnection,
             Log.d("hw4", "starting SaveTask");
             service.startServiceTask();
         }
-//        // Start AsyncTask for saving an entry.
-//        Log.d("hw4", "starting SaveTask");
-//        service.stopServiceTask();
-//        new SaveTask(this).execute(entry);
-//        Log.d("hw4", "starting SaveTask");
-//        service.startServiceTask();
     }
 
     public void deleteEntry(Progress.ProgressEntry entry) {
 
+        // Put flag for
         editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
         editor.putBoolean("deleteentry", true);
         editor.commit();
@@ -467,12 +462,6 @@ public class AppActivity extends Activity implements ServiceConnection,
             Log.d("hw4", "stopping DeleteTask");
             service.startServiceTask();
         }
-//        // Start AsyncTask for deleting an entry.
-//        Log.d("hw4", "starting DeleteTask");
-//        service.stopServiceTask();
-//        new DeleteTask(this, entry).execute(entry.id);
-//        Log.d("hw4", "stopping DeleteTask");
-//        service.startServiceTask();
     }
 
     @Override
@@ -487,6 +476,7 @@ public class AppActivity extends Activity implements ServiceConnection,
         startActivityForResult(login, 0);
     }
 
+    // Starts a new service
     @Override
     public void startNewService() {
         loggedIn = true;
