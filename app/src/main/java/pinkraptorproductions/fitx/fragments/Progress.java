@@ -225,13 +225,34 @@ public class Progress extends Fragment {
     }
 
     // Check if the argument ID is unique in the adapter.
-    public boolean isUnique(String idToMatch) {
+    public boolean isUnique(String id) {
         for (int i = 0; i < adapter.getCount(); i++) {
-            if (adapter.getItem(i).id.equals(idToMatch)) return false;
+            if (adapter.getItem(i).id.equals(id)) return false;
         }
 
         // If we get here, then no matching id was found.
         return true;
+    }
+
+    // check if the item in question has been changed.
+    public boolean hasBeenChanged(int steps, float miles, int minutes, float cups, String id) {
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).id.equals(id)) {
+                if (adapter.getItem(i).steps == steps
+                        && adapter.getItem(i).miles == miles
+                        && adapter.getItem(i).minutes == minutes
+                        && adapter.getItem(i).cups == cups ) return false;
+            }
+        }
+        return true;
+    }
+
+    // Find an item in the adapter with a given ID
+    public int findItem(String id) {
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).id.equals(id)) return i;
+        }
+        return 999;
     }
 
 
@@ -243,7 +264,14 @@ public class Progress extends Fragment {
             adapter.add(new ProgressEntry(steps, miles, minutes, cups, id, date));
             adapter.notifyDataSetChanged();
         }
-        else Log.d("hw4", "Item already exists, id: " + id);
+        else {
+            if (hasBeenChanged(steps, miles, minutes, cups, id)) {
+                adapter.remove(adapter.getItem(findItem(id)));
+                adapter.notifyDataSetChanged();
+                adapter.add(new ProgressEntry(steps, miles, minutes, cups, id, date));
+                adapter.notifyDataSetChanged();
+            }
+        }
     }
 
     @Override
