@@ -32,8 +32,10 @@ public class RetainedFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    // Interface
     private RetainedFragmentInteractionListener listener;
 
+    // Thread variable
     private RefreshThread refreshThread;
 
     /**

@@ -112,16 +112,6 @@ public class LoginActivity extends Activity implements
                     // Validate credentials on the network.
                     new LoginTask(this, session).execute(new String[]{AppActivity.BASE_URL, username, password});
 
-//                    // Save the session data in a bundle.
-//                    Bundle bundle = new Bundle();
-//                    bundle.putString("cookie", session.getCookie());
-//
-//                    // Pass information to the parent activity.
-//                    Intent result = new Intent();
-//                    result.putExtra("login", "success");
-//                    result.putExtra("sessionInfo", bundle);
-//                    setResult(RESULT_OK, result);
-//                    finish();
                 } else {
                     if (username.length() == 0) {
                         usernameEditText.setError("field empty!");
@@ -130,49 +120,6 @@ public class LoginActivity extends Activity implements
                         passwordEditText.setError("field empty!");
                     }
                 }
-
-                // ---------------------
-
-//                if (username.length() != 0 && password.length() != 0) {
-//                    // Validate any credentials and go to AppActivity (Homework #3)
-//                    Intent result = new Intent();
-//                    result.putExtra("login", "success");
-//                    setResult(RESULT_OK, result);
-//                    finish();
-//                } else {
-//                    if (username.length() == 0) usernameEditText.setError("field empty!");
-//                    if (password.length() == 0) passwordEditText.setError("field empty!");
-//                }
-
-                // --------------------
-
-//                // Verify user credentials.
-//                if (username.equals(getString(R.string.master_username)) && password.equals(getString(R.string.master_password)) ) {
-//
-//
-////                    // Start the image activity. (Homework #1)
-////                    Intent start = new Intent(LoginActivity.this, ImageActivity.class);
-////                    startActivityForResult(start, 0);
-//
-////                    // Start the fragment activity. (Homework #2)
-////                    Intent start = new Intent(LoginActivity.this, AppActivity.class);
-////                    startActivity(start);
-//
-//                    // Push minutes to SharedPreferences
-////                    int now_minutes = Calendar.getInstance().get(Calendar.MINUTE);
-////                    SharedPreferences.Editor editor = getSharedPreferences("usersession", MODE_PRIVATE).edit();
-////                    editor.putInt("sessionid", now_minutes);
-//
-////                    //log information to the screen.
-////                    update("Login successful.");
-//
-//                    // Finish processes and close current activity. (Homework #1)
-////                    finish();
-//
-//                } else {
-//                    //log information to the screen.
-//                    update("Incorrect username or password.");
-//                }
                 break;
 
             // Callback for "exit" button.
@@ -244,6 +191,7 @@ public class LoginActivity extends Activity implements
         genToast.show();
     }
 
+    // Run actions based on passed login.
     @Override
     public void loginPass(String cookie) {
 
@@ -252,8 +200,6 @@ public class LoginActivity extends Activity implements
         editor.putString("sessionid", cookie);
         editor.putString("sessionUser", session.getUser());
         editor.commit();
-
-        // ----
 
         // Save the session data in a bundle.
         Bundle bundle = new Bundle();
@@ -267,6 +213,7 @@ public class LoginActivity extends Activity implements
         finish();
     }
 
+    // Run actions based on failed login.
     @Override
     public void loginFailed(String message) {
 

@@ -74,21 +74,14 @@ public class DeleteTask extends AsyncTask<String, Integer, Void> {
             Log.d("vt", " response from the server is" + conn.getResponseCode());
             // handling the response
 
-
             if (conn.getResponseCode() < 400) {
                 Log.d("hw4", "deleted entry:" + params[0] + " from:" + username);
-            } else {
-
             }
-
 
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } catch (Exception e) {
-
             Log.d("vt", " and the exception is " + e);
-
-
         }
 
         return null;

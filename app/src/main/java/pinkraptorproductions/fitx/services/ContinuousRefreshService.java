@@ -74,8 +74,6 @@ public class ContinuousRefreshService extends Service {
 
         // Start the AsyncTask
         startServiceTask();
-//        task = new ServiceTask();
-//        task.execute();
 
         return START_STICKY;
     }

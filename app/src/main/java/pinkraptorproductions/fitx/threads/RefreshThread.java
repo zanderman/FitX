@@ -13,10 +13,6 @@ public class RefreshThread extends Thread {
 
     private Handler handler;
 
-//    public RefreshThread(Handler handler) {
-//        this.handler = handler;
-//    }
-
     @Override
     public void run() {
 

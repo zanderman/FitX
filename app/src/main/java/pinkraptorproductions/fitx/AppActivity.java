@@ -168,9 +168,6 @@ public class AppActivity extends Activity implements ServiceConnection,
 
         // Start the retained fragment.
         connectWithRetainedFragment();
-
-        // Bind with service
-//        bindWithService();
     }
 
     @Override
@@ -191,12 +188,6 @@ public class AppActivity extends Activity implements ServiceConnection,
     protected void onResume() {
         super.onResume();
 
-//        if (progress == null) {
-//            makeToast("progress was null onResume.");
-//            // Restore the progress fragment
-//            progress = (Progress) fm.findFragmentByTag(TAG_PROGRESS);
-//        }
-
         // Check user credentials on separate thread.
         prefs = getSharedPreferences("usersession", MODE_PRIVATE);
         new ValidateSessionTask(this, session).execute(prefs.getString("sessionUser", "default"));
@@ -204,9 +195,7 @@ public class AppActivity extends Activity implements ServiceConnection,
 
     @Override
     protected void onDestroy() {
-//        if (session != null) session.onCancelled();
         if (serviceIsStarted()) {
-//            service.onDestroy();
             getApplicationContext().stopService(new Intent(this, ContinuousRefreshService.class));
             Log.d("hw4","[stopping] service from activity onDestroy.");
         }
@@ -394,7 +383,6 @@ public class AppActivity extends Activity implements ServiceConnection,
                 if (progress == null) {
 
                     // Create new instance of the Settings class.
-//                    progress = Progress.newInstance("a", "z");
                     if (downloadedEntries != null && downloadedEntries.containsKey(KEY_STORE_ID)) {
                         if (downloadedEntries.getStringArray(KEY_STORE_ID).length != 0) {
                             // Pass in downloaded entries
@@ -602,20 +590,5 @@ public class AppActivity extends Activity implements ServiceConnection,
                 );
             }
         }
-
-//        for (int i = 0; i < data.getStringArray(KEY_STORE_ID).length; i++) {
-//
-//            //Log the entries
-//            Log.d("hw4", "entry ["+Integer.toString(i)+"]: "
-//                + "\nsteps=" + Integer.toString(data.getIntArray(KEY_STORE_STEPS)[i])
-//                + "\nmiles=" + Float.toString(data.getFloatArray(KEY_STORE_MILES)[i])
-//                + "\nminutes=" + Integer.toString(data.getIntArray(KEY_STORE_MINUTES)[i])
-//                + "\ncups=" + Float.toString(data.getFloatArray(KEY_STORE_CUPS)[i])
-//                + "\nid=" + data.getStringArray(KEY_STORE_ID)[i]
-//                + "\ndate=" + data.getStringArray(KEY_STORE_DATE)[i]
-//            );
-//
-//            downloadedEntries = data;
-//        }
     }
 }

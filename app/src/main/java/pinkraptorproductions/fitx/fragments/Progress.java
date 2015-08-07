@@ -55,8 +55,6 @@ public class Progress extends Fragment {
     private boolean FLAG_ADD;
     private boolean FLAG_DELETE;
 
-
-
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -78,6 +76,7 @@ public class Progress extends Fragment {
     // Shared Preferences
     SharedPreferences prefs;
 
+    // Bundle of downloaded entries from the server.
     Bundle downloadedEntries;
 
 
@@ -173,6 +172,7 @@ public class Progress extends Fragment {
             downloadedEntries = null;
         }
 
+        // Load a list of downloaded entries.
         if (downloadedEntries != null) {
             Log.d("hw4","downloadEntries.length: " + downloadedEntries.getStringArray(KEY_STORE_ID).length);
             for (int i = 0; i < downloadedEntries.getStringArray(KEY_STORE_ID).length; i++) {
@@ -224,6 +224,7 @@ public class Progress extends Fragment {
         }
     }
 
+    // Check if the argument ID is unique in the adapter.
     public boolean isUnique(String idToMatch) {
         for (int i = 0; i < adapter.getCount(); i++) {
             if (adapter.getItem(i).id.equals(idToMatch)) return false;
@@ -256,10 +257,11 @@ public class Progress extends Fragment {
     private class ProgressEntryAdapter extends ArrayAdapter<ProgressEntry> implements
             View.OnClickListener {
 
+        // Context of the parent activity.
         private final Context context;
+
         //values that will be displaed
         private final ArrayList<ProgressEntry> values;
-
 
         // constructor that takes the values
         public ProgressEntryAdapter(Context context, ArrayList<ProgressEntry> values) {
@@ -268,6 +270,7 @@ public class Progress extends Fragment {
             this.values = values;
         }
 
+        // Check if string is an Integer
         public boolean isInt(String number) {
             try {
                 Integer.parseInt(number);
@@ -277,6 +280,7 @@ public class Progress extends Fragment {
             return true;
         }
 
+        // Check if string is an Float
         public boolean isFloat(String number) {
             try {
                 Float.parseFloat(number);
@@ -285,8 +289,6 @@ public class Progress extends Fragment {
             }
             return true;
         }
-
-
 
         // draws each visible view
         @Override

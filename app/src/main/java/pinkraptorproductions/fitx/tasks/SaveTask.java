@@ -93,10 +93,7 @@ public class SaveTask extends AsyncTask<Progress.ProgressEntry, Integer, Void> {
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } catch (Exception e) {
-
             Log.d("vt", " and the exception is " + e);
-
-
         }
 
         return null;

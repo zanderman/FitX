@@ -46,8 +46,7 @@ public class RefreshTask implements Runnable {
     @Override
     public void run() {
 
-//        // Generate a random number.
-//        int rand = new Random().nextInt(999);
+        // Generate a random number.
         Bundle bundle = new Bundle();
         try {
             bundle = loadUserProgress(this.user);
@@ -56,18 +55,6 @@ public class RefreshTask implements Runnable {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-//        // Store random number inside a bundle.
-//        Bundle bundle = new Bundle();
-//        bundle.putBoolean("result", result);
-//        bundle.putStringArray();
-
-//        // Sleep for 5 seconds.
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
 
         // Generate new message object and populate with bundle.
         Message message = new Message();
